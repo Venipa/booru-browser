@@ -1,0 +1,25 @@
+{
+  "extends": "../tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "compilerOptions": {
+    "incremental": true,
+    "paths": {
+      "@library/*": [
+        "renderer/lib/*"
+      ],
+      "@/components/*": [
+        "renderer/components/*"
+      ],
+      "@/styles/*": [
+        "renderer/styles/*"
+      ]
+    }
+  }
+}

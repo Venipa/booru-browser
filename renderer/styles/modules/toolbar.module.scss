@@ -1,0 +1,6 @@
+.toolbar {
+  user-select: none;
+  &-drag {
+    -webkit-app-region: drag;
+  }
+}

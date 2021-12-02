@@ -1,0 +1,51 @@
+@import "tailwindcss/base";
+@layer base {
+  .drag {
+    -webkit-app-region: drag;
+  }
+
+  .grid-main {
+    display: flex;
+  }
+}
+html,
+body,
+#__next {
+  @apply w-full h-full;
+}
+#__next {
+  @apply overflow-hidden relative rounded;
+}
+.app-background {
+  position: relative;
+  background-image: url("./background.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  z-index: -2;
+  @apply inset-0 absolute rounded overflow-hidden;
+  &:after {
+    content: "";
+    @apply inset-0 absolute bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm rounded;
+  }
+}
+@mixin noDragSelect {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+.button,
+a {
+  @include noDragSelect();
+}
+
+@import "tailwindcss/components";
+@import "components/components";
+
+@import "tailwindcss/utilities";

@@ -1,0 +1,10 @@
+@import "./button.scss";
+
+@layer components {
+  .sidebar {
+    @apply bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm;
+    &-content {
+      @apply mx-4 gap-2 flex flex-col;
+    }
+  }
+}

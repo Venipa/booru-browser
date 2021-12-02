@@ -1,0 +1,124 @@
+.button,
+.btn {
+  @apply cursor-pointer px-4 h-10 border border-transparent text-sm font-medium rounded-md text-gray-800 bg-gray-700 bg-opacity-5 transition duration-100 ease-out flex items-center leading-none;
+  &:hover {
+    @apply bg-indigo-300 bg-opacity-60;
+  }
+  &:focus:not(.active),
+  &:hover:focus:not(.active) {
+    @apply ring-indigo-600 ring-opacity-50 bg-indigo-300 bg-opacity-50 outline-none ring-2;
+  }
+  &.active {
+    @apply bg-indigo-300 bg-opacity-50 outline-none ring-0;
+  }
+  svg {
+    @apply h-5 w-5;
+  }
+  &-xs {
+    @apply px-2 h-6 text-xs font-medium rounded;
+    svg {
+      @apply h-4 w-4;
+    }
+  }
+  &-sm {
+    @apply px-2.5 h-7 text-sm;
+    svg {
+      @apply h-4 w-4;
+    }
+  }
+  &-lg {
+    svg {
+      @apply h-6 w-6;
+    }
+    @apply px-3.5 h-8 text-base font-medium;
+  }
+  &-xl {
+    svg {
+      @apply h-8 w-8;
+    }
+    @apply px-5 h-10 text-base font-medium;
+  }
+  &-dark {
+    @apply bg-transparent bg-opacity-0 text-white text-opacity-90;
+    &:hover {
+      @apply bg-white bg-opacity-10;
+    }
+    &:focus,
+    &:hover:focus {
+      @apply ring-0 bg-white bg-opacity-20;
+    }
+  }
+  &-light {
+    @apply bg-transparent bg-opacity-0 text-black text-opacity-90;
+    &:hover {
+      @apply bg-black bg-opacity-10;
+    }
+    &:focus,
+    &:hover:focus {
+      @apply ring-0 bg-black bg-opacity-20;
+    }
+  }
+  &-icon {
+    @apply h-10 w-10 leading-10 p-2;
+    svg {
+      @apply h-full w-full;
+      fill: currentColor;
+      color: inherit;
+    }
+    &-sm {
+      @apply h-8 w-8 leading-8 p-1;
+    }
+    &-circle {
+      @apply rounded-full;
+    }
+  }
+  &-control {
+    @apply h-6 w-6 leading-6 p-1;
+    &:focus,
+    &:hover:focus {
+      @apply ring-0;
+    }
+    &:active {
+      @apply transform scale-95;
+    }
+    &-danger {
+      &:hover {
+        @apply bg-red-500 bg-opacity-70 text-white;
+      }
+      &:focus,
+      &:hover:focus,
+      &:active,
+      &:hover:active {
+        @apply ring-red-600 ring-opacity-50 bg-red-600 text-white bg-opacity-50;
+      }
+    }
+  }
+  &-nav {
+    @apply ring-0 w-full bg-opacity-0 px-3;
+    &:hover {
+      @apply bg-black bg-opacity-5;
+    }
+    &:focus,
+    &:hover:focus {
+      @apply ring-0 bg-black bg-opacity-10;
+    }
+    &:active {
+      @apply transform scale-95;
+    }
+    &.active {
+      &:hover, & {
+        @apply bg-indigo-300 bg-opacity-30 cursor-default;
+      }
+      svg {
+        @apply text-indigo-900 bg-opacity-80;
+      }
+      &:active {
+        @apply scale-100;
+      }
+    }
+  }
+  &.disabled,
+  &:disabled {
+    @apply cursor-default;
+  }
+}
