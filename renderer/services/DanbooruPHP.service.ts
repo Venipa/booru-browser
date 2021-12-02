@@ -3,21 +3,34 @@ import { clamp } from "lodash-es";
 import { BooruPost, BooruPostState } from "renderer/stores/posts";
 import { ServerType } from "renderer/stores/server";
 import BooruService, { BooruHttpOptions } from "./BooruService";
-
-export class DanbooruService implements BooruService {
+const UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36";
+export class DanbooruPHPService implements BooruService {
   private http: Axios;
   private auth: { name: string; password: string };
+  readonly defaultParams: { [key: string]: any } = {
+    page: "dapi",
+    json: 1,
+    s: "post",
+    q: "index",
+  };
   constructor(private _server: ServerType) {
     this.http = new Axios({
       baseURL: _server.url,
     });
   }
+  private get baseUrl() {
+    return this._server.url.replace(/\/$/, "");
+  }
   async get(page: number = 1, args: Partial<BooruHttpOptions>) {
     return await this.http
-      .get(`/posts.json`, {
+      .get(`/index.php`, {
         params: {
-          [`search[name_matches]`]: args?.q || "*",
-          page: clamp(page, 1, page),
+          ...this.defaultParams,
+          pid: clamp(page, 1, page),
+        },
+        headers: {
+          "user-agent": UA,
         },
       })
       .then((x) => JSON.parse(x.data))
@@ -28,46 +41,35 @@ export class DanbooruService implements BooruService {
             .map(
               ({
                 id,
-                image_height: height,
-                image_width: width,
-                md5: hash,
+                height,
+                width,
+                change,
+                directory,
+                hash,
                 score,
-                tags_string,
-                tag_string_general,
-                file_url: image,
-                large_file_url: sample,
-                preview_file_url: thumbnail,
-                created_at,
-                updated_at,
-                tag_string_copyright,
-                tag_string_artist,
+                tags,
+                image,
                 rating,
                 ...other
               }: any) => {
+                const baseUrl = this.baseUrl;
+                const imageId = image.match(/^(.*)\./)[1];
                 const next: BooruPost = {
                   id,
                   height,
                   width,
                   hash,
                   score,
-                  tags: (tag_string_general || tags_string)?.split(" ") || [],
-                  rating:
-                    {
-                      s: "safe",
-                    }[rating as string] || `${rating}`,
+                  tags: tags?.split(" ") || [],
+                  rating: "safe",
                   image,
-                  sample,
-                  thumbnail,
-                  source: image,
-                  artist: `${tag_string_artist || ""}`.split(" ")[0] || null,
-                  category:
-                    `${tag_string_copyright || ""}`.split(" ")[0] || null,
-                  refs: {
-                    pixiv: other.pixiv_id,
-                    isLarge: !!other.has_large,
-                  },
-                  type: other.type,
-                  date: updated_at || created_at,
+                  sample: `${baseUrl}/samples/${directory}/sample_${imageId}.jpg`,
+                  thumbnail: `${baseUrl}/thumbnails/${directory}/thumbnail_${imageId}.jpg`,
+                  source: `${baseUrl}/images/${directory}/${image}`,
+                  date: change
+                    ? new Date(change * 1000).toISOString()
+                    : undefined,
+                  type: `${image}`.match(/\.(\w+)$/)?.[1],
                 };
                 return next;
               }

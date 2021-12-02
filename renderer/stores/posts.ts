@@ -17,12 +17,12 @@ export interface BooruPost {
   sample: string;
   artist?: string | null;
   category?: string | null;
-  type: string;
+  type?: string;
   thumbnail: string;
   rating: string;
   source: string;
   refs?: Partial<{ [key: string]: any }>;
-  date: string;
+  date?: string;
 }
 export interface BooruPostState
   extends EntityState<BooruPost, string>,

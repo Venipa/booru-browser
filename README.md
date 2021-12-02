@@ -1,38 +1,21 @@
-<p align="center"><img src="https://i.imgur.com/a9QWW0v.png"></p>
+# Booru-browser (wip)
 
-## Usage
+![image](https://user-images.githubusercontent.com/17952364/144346896-fe2fa88a-b677-4a2f-81a1-cffbb4fe72dc.png)
 
-### Create an App
-
-```
-# with npx
-$ npx create-nextron-app my-app --example with-typescript-tailwindcss
-
-# with yarn
-$ yarn create nextron-app my-app --example with-typescript-tailwindcss
-
-# with pnpx
-$ pnpx create-nextron-app my-app --example with-typescript-tailwindcss
-```
-
-### Install Dependencies
+## Project setup
 
 ```
-$ cd my-app
-
-# using yarn or npm
-$ yarn (or `npm install`)
-
-# using pnpm
-$ pnpm install --shamefully-hoist
+yarn install
 ```
 
-### Use it
+### Compiles and hot-reloads for development
 
 ```
-# development mode
-$ yarn dev (or `npm run dev` or `pnpm run dev`)
+yarn dev
+```
 
-# production build
-$ yarn build (or `npm run build` or `pnpm run build`)
+### Compiles and minifies for production
+
+```
+yarn build
 ```

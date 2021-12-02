@@ -58,9 +58,15 @@ export interface ServerType {
 export interface ServerTypeState
   extends EntityState<ServerType, string>,
     ActiveState {}
-export const serverStore = createEntityStore<ServerTypeState>(
-  {},
-  { name: "servers", producerFn: produce, idKey: "name" }
+export const serverStore = ((store) => {
+  // edit / override methods
+
+  return store;
+})(
+  createEntityStore<ServerTypeState>(
+    {},
+    { name: "servers", producerFn: produce, idKey: "name" }
+  )
 );
 export const serverQuery = createEntityQuery(serverStore, {
   sortBy: (x) => Date.parse(x.meta.added),

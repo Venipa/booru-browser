@@ -85,7 +85,28 @@ export default (
   win.on("close", saveState);
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
-    return { action: 'deny' };
+    return { action: "deny" };
+  });
+  win.webContents.session.webRequest.onBeforeSendHeaders(
+    (details, callback) => {
+      callback({
+        requestHeaders: {
+          Origin: "*",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36",
+          ...details.requestHeaders,
+        },
+      });
+    }
+  );
+
+  win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        "Access-Control-Allow-Origin": ["*"],
+        ...details.responseHeaders,
+      },
+    });
   });
   return win;
 };

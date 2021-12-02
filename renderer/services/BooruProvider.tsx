@@ -7,7 +7,7 @@ import React, {
 import { getLocaleCode, getlocaleByCode } from "./data";
 import BooruContext from "./BooruContext";
 import { useObservable } from "rxjs-hooks";
-import { serverQuery } from "renderer/stores/server";
+import { serverQuery, ServerType } from "renderer/stores/server";
 import BooruService, { createFactory } from "./BooruService";
 import { postsStore } from "renderer/stores/posts";
 
@@ -20,6 +20,7 @@ const BooruProvider = ({ children, ...props }: PropsWithChildren<any>) => {
   useEffect(() => {
     let service: BooruService | null;
     if (active && (service = createFactory(active))) {
+      postsStore.remove();
       setService(service);
     }
   }, [active]);
