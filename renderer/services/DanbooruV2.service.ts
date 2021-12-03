@@ -18,6 +18,7 @@ export class DanbooruService implements BooruService {
         params: {
           [`search[name_matches]`]: args?.q || "*",
           page: clamp(page, 1, page),
+          tags: args.tags
         },
       })
       .then((x) => JSON.parse(x.data))
@@ -64,7 +65,7 @@ export class DanbooruService implements BooruService {
                     `${tag_string_copyright || ""}`.split(" ")[0] || null,
                   refs: {
                     pixiv: other.pixiv_id,
-                    isLarge: !!other.has_large,
+                    isLarge: !!other.has_large
                   },
                   type: other.type,
                   date: updated_at || created_at,

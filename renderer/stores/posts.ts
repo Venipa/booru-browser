@@ -6,6 +6,7 @@ import {
   Order,
 } from "@datorama/akita";
 import produce from "immer";
+export type FileType = "image" | "video" | "audio" | "other";
 export interface BooruPost {
   id: string;
   height: number;

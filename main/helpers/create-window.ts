@@ -5,7 +5,20 @@ import {
   shell,
 } from "electron";
 import Store from "electron-store";
-
+const SecureHeaders = {
+  "sec-ch-ua": ` Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96`,
+  "sec-ch-ua-mobile": `?0`,
+  "sec-ch-ua-platform": "Windows",
+  "sec-fetch-dest": "document",
+  "sec-fetch-mode": "no-cors",
+  "sec-fetch-site": "same-origin",
+};
+type WindowState = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 export default (
   windowName: string,
   options: BrowserWindowConstructorOptions
@@ -13,14 +26,14 @@ export default (
   const key = "window-state";
   const name = `window-state-${windowName}`;
   const store = new Store({ name });
-  const defaultSize = {
-    width: options.width,
-    height: options.height,
-  };
+  const defaultSize: WindowState = {
+    width: options.width!,
+    height: options.height!,
+  } as any;
   let state = {};
-  let win;
+  let win: BrowserWindow;
 
-  const restore = () => store.get(key, defaultSize);
+  const restore = () => store.get(key, defaultSize) as WindowState;
 
   const getCurrentPosition = () => {
     const position = win.getPosition();
@@ -33,7 +46,7 @@ export default (
     };
   };
 
-  const windowWithinBounds = (windowState, bounds) => {
+  const windowWithinBounds = (windowState: WindowState, bounds: WindowState) => {
     return (
       windowState.x >= bounds.x &&
       windowState.y >= bounds.y &&
@@ -50,7 +63,7 @@ export default (
     });
   };
 
-  const ensureVisibleOnSomeDisplay = (windowState) => {
+  const ensureVisibleOnSomeDisplay = (windowState: WindowState) => {
     const visible = screen.getAllDisplays().some((display) => {
       return windowWithinBounds(windowState, display.bounds);
     });
@@ -77,6 +90,7 @@ export default (
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
+      webSecurity: false,
       ...options.webPreferences,
     },
   };
@@ -89,9 +103,11 @@ export default (
   });
   win.webContents.session.webRequest.onBeforeSendHeaders(
     (details, callback) => {
+      const { origin } = new URL(details.url);
       callback({
         requestHeaders: {
           Origin: "*",
+          Referer: origin,
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36",
           ...details.requestHeaders,
@@ -104,6 +120,7 @@ export default (
     callback({
       responseHeaders: {
         "Access-Control-Allow-Origin": ["*"],
+        ...SecureHeaders,
         ...details.responseHeaders,
       },
     });

@@ -4,9 +4,11 @@ import React, { DOMAttributes, PropsWithChildren } from "react";
 import Link from "next/link";
 type Props = {
   className?: string;
+  type?: string;
   target?: "_blank" | string;
 } & Partial<LinkProps> &
-  Partial<DOMAttributes<HTMLButtonElement>>;
+  DOMAttributes<HTMLButtonElement> &
+  DOMAttributes<HTMLFormElement>;
 function ButtonBase({ children, ...props }: PropsWithChildren<Props>) {
   return React.createElement(
     props.href ? "a" : "button",

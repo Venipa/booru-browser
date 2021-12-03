@@ -69,7 +69,7 @@ export const serverStore = ((store) => {
   )
 );
 export const serverQuery = createEntityQuery(serverStore, {
-  sortBy: (x) => Date.parse(x.meta.added),
+  sortBy: (x) => (x.meta?.added ? Date.parse(x.meta.added) : 0),
   sortByOrder: Order.DESC,
 });
 

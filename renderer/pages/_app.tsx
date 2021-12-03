@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { persistState } from "@datorama/akita";
 import { initializeServers } from "renderer/stores/server";
 import BooruProvider from "renderer/services/BooruProvider";
+import { DialogProvider, DialogRoot } from "@/components/Dialog";
 
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -16,12 +17,15 @@ function MyApp({ Component, pageProps }: AppProps) {
   const getLayout = (Component as any).getLayout ?? ((page: any) => page);
   return (
     <React.Fragment>
-      <div className="h-full w-full flex flex-col z-10">
-        <BooruProvider>
-          <BaseLayout>{getLayout(<Component {...pageProps} />)}</BaseLayout>
-        </BooruProvider>
-        <div className="app-background"></div>
-      </div>
+      <DialogProvider>
+        <DialogRoot />
+        <div className="h-full w-full flex flex-col z-10">
+          <BooruProvider>
+            <BaseLayout>{getLayout(<Component {...pageProps} />)}</BaseLayout>
+          </BooruProvider>
+          <div className="app-background"></div>
+        </div>
+      </DialogProvider>
     </React.Fragment>
   );
 }

@@ -8,3 +8,32 @@
     }
   }
 }
+.my-masonry-grid {
+  display: -webkit-box; /* Not needed if autoprefixing */
+  display: -ms-flexbox; /* Not needed if autoprefixing */
+  display: flex;
+  margin-left: -30px; /* gutter size offset */
+  width: auto;
+}
+
+
+@mixin custom-scrollbar($scrollbarWidth: 4px) {
+  ::-webkit-scrollbar {
+    border-radius: 0px;
+    height: 10px;
+    &:hover,
+    &:active,
+    &:focus {
+      width: $scrollbarWidth;
+    }
+    width: $scrollbarWidth;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 0;
+  }
+  ::-webkit-scrollbar-track {
+    border-radius: 0;
+  }
+}
+@include custom-scrollbar()

@@ -58,6 +58,18 @@
       @apply ring-0 bg-black bg-opacity-20;
     }
   }
+  &-danger {
+    @apply bg-red-600 bg-opacity-60 text-white text-opacity-90;
+    &:hover {
+      @apply bg-red-600 bg-opacity-80;
+    }
+    &:focus,
+    &:hover:focus,
+    &:active,
+    &:hover:active {
+      @apply ring-0 bg-red-600 text-white bg-opacity-80;
+    }
+  }
   &-icon {
     @apply h-10 w-10 leading-10 p-2;
     svg {
@@ -106,7 +118,8 @@
       @apply transform scale-95;
     }
     &.active {
-      &:hover, & {
+      &:hover,
+      & {
         @apply bg-indigo-300 bg-opacity-30 cursor-default;
       }
       svg {

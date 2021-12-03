@@ -8,6 +8,7 @@ import { useObservable } from "rxjs-hooks";
 import { classNames } from "@library/helper";
 import { Portal } from "@headlessui/react";
 import ServerEditDialog from "@/components/ServerEditDialog";
+import { DialogConsumer } from "@library/modal";
 
 export default function () {
   const servers = useObservable(
@@ -39,19 +40,24 @@ export default function () {
                   <div>{x.name}</div>
                   <div>{x.url}</div>
                 </div>
+                <div className="w-4"></div>
                 <div className="flex flex-col justify-center">
-                  <ServerEditDialog
-                    server={x}
-                    trigger={
-                      <Button
-                        onClick={(ev) => {
-                          ev.stopPropagation();
-                        }}
-                        className="button-icon button-dark button-icon-circle">
-                        <HiPencil />
-                      </Button>
-                    }
-                  />
+                  <DialogConsumer>
+                    {({ show }) => (
+                      <React.Fragment>
+                        <Button
+                          onClick={(ev) => {
+                            ev.stopPropagation();
+                            show(ServerEditDialog, {
+                              server: x,
+                            });
+                          }}
+                          className="button-icon button-dark button-icon-circle">
+                          <HiPencil />
+                        </Button>
+                      </React.Fragment>
+                    )}
+                  </DialogConsumer>
                 </div>
               </div>
             );
