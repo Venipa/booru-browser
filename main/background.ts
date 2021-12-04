@@ -1,5 +1,6 @@
-import { app, dialog, ipcMain } from "electron";
+import { app, dialog, ipcMain, shell } from "electron";
 import serve from "electron-serve";
+import { dirname, normalize } from "path";
 import { DownloadItem } from "renderer/stores/downloads";
 import { createWindow } from "./helpers";
 import { downloadNative, queue, PState } from "./helpers/downloadService";
@@ -42,6 +43,9 @@ if (isProd) {
     });
     return folder?.[0];
   });
+  ipcMain.on("api/dir:open", async (ev, dir: string) => {
+    if (dir) shell.openPath(dirname(dir));
+  });
   ipcMain.on("api/add:download", async (ev, d: DownloadItem[]) => {
     console.log("added dl", d);
     if (d?.length > 0) {
@@ -49,7 +53,12 @@ if (isProd) {
         d.map(
           (x) => () =>
             downloadNative(x, (id, status, ...args) => {
-              mainWindow.webContents.send("api/status:download", id, status, ...args);
+              mainWindow.webContents.send(
+                "api/status:download",
+                id,
+                status,
+                ...args
+              );
             })
         )
       );

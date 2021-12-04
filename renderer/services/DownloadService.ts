@@ -44,7 +44,7 @@ export default class DownloadService {
       date: new Date().toISOString(),
       path: downloadPath
         ? downloadPath?.replace(/\/$/, "") + `/${d.id}.${d.type}`
-        : null,
+        : undefined,
       post: d,
       status: "pending",
     });

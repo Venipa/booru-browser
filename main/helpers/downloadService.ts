@@ -24,7 +24,10 @@ export async function downloadNative(
   onUpdate: (id: string, status: string, ...args: any[]) => void
 ) {
   onUpdate(d.id, "active");
-  const newPath = path.normalize(d.path ?? app.getPath("downloads"));
+  const type = d.post.type || d.post.source.match(/\.(\w+)$/)?.[1];
+  const newPath = path.normalize(
+    d.path ?? path.join(app.getPath("downloads"), `${d.id}.${type}`)
+  );
   if (
     !(await access(dirname(newPath))
       .then(() => true)

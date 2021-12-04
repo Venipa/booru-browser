@@ -1,5 +1,5 @@
 import axios from "axios";
-import { clipboard, nativeImage } from "electron";
+import { clipboard, ipcRenderer, nativeImage } from "electron";
 import { useEffect, useState } from "react";
 import { serverQuery } from "renderer/stores/server";
 
@@ -71,4 +71,7 @@ export async function downloadFileAsBlob(url: string) {
     data,
     uri,
   };
+}
+export function openDirectory(dir: string) {
+  return ipcRenderer.send("api/dir:open", dir);
 }

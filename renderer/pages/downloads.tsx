@@ -6,6 +6,7 @@ import { useObservable } from "rxjs-hooks";
 import { Order } from "@datorama/akita";
 import { map } from "rxjs/operators";
 import { firstBy } from "thenby";
+import { openDirectory } from "@library/helper";
 
 export default function () {
   const downloads = useObservable(() =>
@@ -35,7 +36,7 @@ export default function () {
                           .map((d) => ({ ...d, date: new Date(d.date) }))
                           .map((d) => {
                             return (
-                              <li key={d.id} className="flex flex-col flex-1">
+                              <li key={d.id} className="flex flex-col flex-1" onClick={() => d.status === "completed" && openDirectory(d.path!)}>
                                 <button className="block bg-gray-50 rounded-lg flex-1 border border-gray-200">
                                   <div className="px-4 py-4 sm:px-6">
                                     <div className="flex items-center justify-between">
@@ -48,12 +49,11 @@ export default function () {
                                         </p>
                                       </div>
                                     </div>
-                                    <div className="mt-2 sm:flex sm:justify-between">
+                                    <div className="mt-2 flex justify-between">
                                       <div className="flex">
-                                        <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                        <p className="flex items-center text-sm text-gray-500">
                                           <HiExternalLink
                                             className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
-                                            aria-hidden="true"
                                           />
                                           {d.path}
                                         </p>
@@ -61,7 +61,6 @@ export default function () {
                                       <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
                                         <HiCalendar
                                           className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
-                                          aria-hidden="true"
                                         />
                                         <p>
                                           Added at{" "}
