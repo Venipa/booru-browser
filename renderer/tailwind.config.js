@@ -3,11 +3,17 @@ const defaultTheme = require("tailwindcss/defaultTheme");
 const tailwindFilters = require("tailwindcss-filters");
 const tailwindForms = require("@tailwindcss/forms");
 /**
- * @type {import("tailwindcss/tailwind-config").TailwindTheme}
+ * @type {import("tailwindcss/tailwind-config").TailwindConfig}
  */
 module.exports = {
   mode: "aot",
-  purge: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
+  purge: {
+    enabled: false,
+    content: [
+      "./pages/**/*.{js,ts,jsx,tsx}",
+      "./components/**/*.{js,ts,jsx,tsx}",
+    ],
+  },
   darkMode: false,
   corePlugins: {
     container: false,
@@ -63,7 +69,7 @@ module.exports = {
         sidebar: "286px",
         previewPane: "768px",
         previewPaneMax: "1024px",
-      }
+      },
     },
   },
   variants: {

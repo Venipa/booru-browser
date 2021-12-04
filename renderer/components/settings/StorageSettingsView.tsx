@@ -23,8 +23,8 @@ const schema = yup
         (v) =>
           new Promise((resolve) =>
             resolve(
-              v === settingsStore.getValue().downloadPath ||
-                access(v)
+              (v && v === settingsStore.getValue().downloadPath) ||
+                access(v!)
                   .then(() => true)
                   .catch(() => false)
             )

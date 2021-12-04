@@ -1,11 +1,12 @@
-import { Axios } from "axios";
-import { clamp } from "lodash-es";
-import { BooruPost, BooruPostState } from "renderer/stores/posts";
-import { ServerType } from "renderer/stores/server";
-import BooruService, { BooruHttpOptions } from "./BooruService";
+import { Axios } from 'axios';
+import { clamp } from 'lodash-es';
+import { BooruPost } from 'renderer/stores/posts';
+import { ServerType } from 'renderer/stores/server';
+
+import BooruService, { BooruHttpOptions } from './BooruService';
+
 export class DanbooruPHPService implements BooruService {
   private http: Axios;
-  private auth: { name: string; password: string };
   readonly defaultParams: { [key: string]: any } = {
     page: "dapi",
     json: 1,

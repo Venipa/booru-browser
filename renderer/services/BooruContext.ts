@@ -9,7 +9,7 @@ export type BooruContextType = {
   cancelDownload: (x: string) => void;
   removeDownload: (x: string) => void;
 };
-const BooruContext = createContext<BooruContextType>({});
+const BooruContext = createContext<BooruContextType>({} as any);
 
 export default BooruContext;
 

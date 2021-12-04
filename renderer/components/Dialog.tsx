@@ -6,7 +6,7 @@ import {
 import { PropsWithChildren, ReactElement, JSXElementConstructor, useState } from "react";
 
 interface Props {}
-interface DialogProps {
+export interface DialogProps {
   onRequestClose?: () => void;
   [key: string]: any;
 }
@@ -41,10 +41,10 @@ function DialogProvider({ children, ...args }: PropsWithChildren<Props>) {
 }
 const DialogRoot = () => (
   <DialogConsumer>
-    {({ component: Component, props, hide }) =>
+    {({ component: Component, props, hide }: any) =>
       Component ? <Component {...props} onRequestClose={hide} /> : null
     }
   </DialogConsumer>
 );
 
-export { DialogProvider, DialogRoot, DialogProps };
+export { DialogProvider, DialogRoot };

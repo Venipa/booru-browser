@@ -1,16 +1,12 @@
-import React, {
-  createContext,
-  PropsWithChildren,
-  useEffect,
-  useState,
-} from "react";
-import { getLocaleCode, getlocaleByCode } from "./data";
-import BooruContext from "./BooruContext";
-import { useObservable } from "rxjs-hooks";
-import { serverQuery, ServerType } from "renderer/stores/server";
-import BooruService, { createFactory } from "./BooruService";
-import { postsStore } from "renderer/stores/posts";
-import DownloadService from "./DownloadService";
+import React, { createContext, PropsWithChildren, useEffect, useState } from 'react';
+import { postsStore } from 'renderer/stores/posts';
+import { serverQuery } from 'renderer/stores/server';
+import { useObservable } from 'rxjs-hooks';
+
+import BooruContext from './BooruContext';
+import BooruService, { createFactory } from './BooruService';
+import DownloadService from './DownloadService';
+
 const downloadService = new DownloadService();
 const BooruProvider = ({ children, ...props }: PropsWithChildren<any>) => {
   const active = useObservable(

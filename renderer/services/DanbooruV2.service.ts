@@ -6,7 +6,6 @@ import BooruService, { BooruHttpOptions } from "./BooruService";
 
 export class DanbooruService implements BooruService {
   private http: Axios;
-  private auth: { name: string; password: string };
   constructor(private _server: ServerType) {
     this.http = new Axios({
       baseURL: _server.url,
