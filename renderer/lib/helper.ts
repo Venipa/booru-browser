@@ -1,3 +1,4 @@
+import axios from "axios";
 import { clipboard, nativeImage } from "electron";
 import { useEffect, useState } from "react";
 import { serverQuery } from "renderer/stores/server";
@@ -52,9 +53,22 @@ export function useKeyPress(targetKey: string) {
 }
 
 export async function testUniqueServer(name: string) {
-  return !serverQuery.getAll({filterBy: x => x.name.toLowerCase() === name.toLowerCase()}).length;
+  return !serverQuery.getAll({
+    filterBy: (x) => x.name.toLowerCase() === name.toLowerCase(),
+  }).length;
 }
 
 export const imageMatcher = new RegExp(/\.(jp(e)?g|png|gif)$/);
 export const videoMatcher = new RegExp(/\.(mp4|webm)$/);
 export const audioMatcher = new RegExp(/\.(mp3|m4a|ogg)$/);
+
+export async function downloadFileAsBlob(url: string) {
+  const data = await axios
+    .get(url, { responseType: "blob" })
+    .then((x) => x.data as Blob);
+  const uri = URL.createObjectURL(data);
+  return {
+    data,
+    uri,
+  };
+}

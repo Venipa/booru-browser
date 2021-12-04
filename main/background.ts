@@ -1,6 +1,8 @@
-import { app, ipcMain } from "electron";
+import { app, dialog, ipcMain } from "electron";
 import serve from "electron-serve";
+import { DownloadItem } from "renderer/stores/downloads";
 import { createWindow } from "./helpers";
+import { downloadNative, queue, PState } from "./helpers/downloadService";
 
 const isProd: boolean = process.env.NODE_ENV === "production";
 
@@ -34,8 +36,27 @@ if (isProd) {
     if (mainWindow.closable) mainWindow.close();
     app.quit();
   });
+  ipcMain.handle("api/dir:select", async () => {
+    const folder = dialog.showOpenDialogSync(mainWindow, {
+      properties: ["openDirectory", "createDirectory"],
+    });
+    return folder?.[0];
+  });
+  ipcMain.on("api/add:download", async (ev, d: DownloadItem[]) => {
+    console.log("added dl", d);
+    if (d?.length > 0) {
+      queue.enqueue(
+        d.map(
+          (x) => () =>
+            downloadNative(x, (id, status, ...args) => {
+              mainWindow.webContents.send("api/status:download", id, status, ...args);
+            })
+        )
+      );
+    }
+    if (queue.size > 0 && !queue.state.RUNNING) queue.start();
+  });
 })();
-
 app.on("window-all-closed", () => {
   app.quit();
 });

@@ -6,6 +6,7 @@ type Props = {
   className?: string;
   type?: string;
   target?: "_blank" | string;
+  disabled?: boolean;
 } & Partial<LinkProps> &
   DOMAttributes<HTMLButtonElement> &
   DOMAttributes<HTMLFormElement>;
@@ -16,6 +17,7 @@ function ButtonBase({ children, ...props }: PropsWithChildren<Props>) {
       ...props,
       className: classNames(
         props.href ? "flex-inline" : "flex",
+        props.disabled ? "disabled" : null,
         "button flex-row items-center",
         props.className
       ),

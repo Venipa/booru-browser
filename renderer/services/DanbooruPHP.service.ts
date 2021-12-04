@@ -3,8 +3,6 @@ import { clamp } from "lodash-es";
 import { BooruPost, BooruPostState } from "renderer/stores/posts";
 import { ServerType } from "renderer/stores/server";
 import BooruService, { BooruHttpOptions } from "./BooruService";
-const UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36";
 export class DanbooruPHPService implements BooruService {
   private http: Axios;
   private auth: { name: string; password: string };
@@ -28,10 +26,7 @@ export class DanbooruPHPService implements BooruService {
         params: {
           ...this.defaultParams,
           pid: clamp(page, 1, page),
-        },
-        headers: {
-          "user-agent": UA,
-        },
+        }
       })
       .then((x) => JSON.parse(x.data))
       .then((x) => {

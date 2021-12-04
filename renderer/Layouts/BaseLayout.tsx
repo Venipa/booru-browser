@@ -2,6 +2,7 @@ import BooruPostView from "@/components/BooruPostView";
 import Button from "@/components/Button";
 import Toolbar from "@/components/Toolbar";
 import { classNames } from "@library/helper";
+import { clamp } from "lodash-es";
 import { useRouter } from "next/dist/client/router";
 import { PropsWithChildren, useEffect, useState } from "react";
 import {
@@ -10,7 +11,9 @@ import {
   HiFire,
   HiDownload,
   HiServer,
+  HiCog,
 } from "react-icons/hi";
+import { downloadsQuery } from "renderer/stores/downloads";
 import { postsQuery } from "renderer/stores/posts";
 import { useObservable } from "rxjs-hooks";
 const navLinks: (
@@ -50,10 +53,20 @@ const navLinks: (
     icon: <HiServer />,
     type: "item",
   },
+  {
+    type: "divide",
+  },
+  {
+    name: "Settings",
+    href: "/settings",
+    icon: <HiCog />,
+    type: "item",
+  },
 ];
 export default function ({ children, ...props }: PropsWithChildren<any>) {
   const { asPath } = useRouter();
   const [showSelected, setShowSelected] = useState(false);
+  const downloadCount = useObservable(() => downloadsQuery.selectCount(), 0);
   const selected = useObservable(() => postsQuery.selectActive());
   useEffect(() => {
     setShowSelected(!!asPath.match(/^\/($|hot|top)/));
@@ -74,16 +87,25 @@ export default function ({ children, ...props }: PropsWithChildren<any>) {
                   );
                 if (x.type === "item")
                   return (
-                    <Button
-                      key={x.href}
-                      className={classNames(
-                        "button-nav gap-1",
-                        asPath === x.href ? "active" : null
+                    <div className="relative">
+                      <Button
+                        key={x.href}
+                        className={classNames(
+                          "button-nav gap-1",
+                          asPath === x.href ? "active" : null
+                        )}
+                        href={x.href}>
+                        {x.icon}
+                        <span>{x.name}</span>
+                      </Button>
+                      {x.href.match("/downloads") && downloadCount > 0 && (
+                        <div className="bg-red-600 w-4 h-4 rounded-full flex flex-col justify-center items-center top-0 right-0 absolute">
+                          <span className="text-xxs text-white">
+                            {clamp(downloadCount, 1, 99)}
+                          </span>
+                        </div>
                       )}
-                      href={x.href}>
-                      {x.icon}
-                      <span>{x.name}</span>
-                    </Button>
+                    </div>
                   );
 
                 return null;

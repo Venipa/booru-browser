@@ -8,10 +8,10 @@ import { persistState } from "@datorama/akita";
 import { initializeServers } from "renderer/stores/server";
 import BooruProvider from "renderer/services/BooruProvider";
 import { DialogProvider, DialogRoot } from "@/components/Dialog";
-
+import { persistStore } from "renderer/stores/storeHandler";
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
-    persistState({});
+    persistStore();
     initializeServers();
   });
   const getLayout = (Component as any).getLayout ?? ((page: any) => page);
