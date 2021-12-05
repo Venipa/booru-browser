@@ -1,6 +1,7 @@
 # Booru-browser (wip)
 
-![image](https://user-images.githubusercontent.com/17952364/144346896-fe2fa88a-b677-4a2f-81a1-cffbb4fe72dc.png)
+![Booru_Browser_2021-12-05_23-07-39](https://user-images.githubusercontent.com/17952364/144765787-1a13def7-f43f-4c09-8bcf-d77c54cbf780.png)
+
 
 ## Project setup
 
