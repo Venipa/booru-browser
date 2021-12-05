@@ -12,7 +12,9 @@ export interface DownloadItem {
   id: string;
   post: BooruPost;
   path?: string;
+  url: string;
   status?: string;
+  pogress?: { loaded: number; total: number };
   date: string;
 }
 export interface DownloadItemState

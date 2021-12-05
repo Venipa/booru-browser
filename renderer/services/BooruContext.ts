@@ -1,11 +1,11 @@
 import React, { createContext, useContext } from "react";
-import { BooruPost } from "renderer/stores/posts";
+import { BooruPost, FileType } from "renderer/stores/posts";
 import { ServerType } from "renderer/stores/server";
 import BooruService from "./BooruService";
 export type BooruContextType = {
   active: ServerType | undefined;
   service: BooruService | undefined;
-  addDownload: (x: BooruPost) => void;
+  addDownload: (x: BooruPost, fileType?: FileType) => void;
   cancelDownload: (x: string) => void;
   removeDownload: (x: string) => void;
 };

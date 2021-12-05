@@ -1,6 +1,6 @@
-import axios from "axios";
+import axios, { CancelToken, CancelTokenSource } from "axios";
 import { clipboard, ipcRenderer, nativeImage } from "electron";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { serverQuery } from "renderer/stores/server";
 
 export function classNames(...classes: (string | any | null | undefined)[]) {
@@ -8,21 +8,10 @@ export function classNames(...classes: (string | any | null | undefined)[]) {
 }
 export const IS_SSR = typeof window === "undefined";
 
-export function copyImage(
-  imgCap: HTMLImageElement,
-  size: { width: number; height: number }
-) {
-  var imgCanvas = document.createElement("canvas");
-  const { height, width } = size;
-  imgCanvas.width = width;
-  imgCanvas.height = height;
-  const el = document.body.appendChild(imgCanvas);
-  var originalContext = el.getContext("2d")!;
-  originalContext.drawImage(imgCap, 0, 0);
-
-  const image = nativeImage.createFromDataURL(imgCanvas.toDataURL());
-  clipboard.writeImage(image);
-  el.remove();
+export async function copyImage(img: Blob) {
+  clipboard.writeImage(
+    nativeImage.createFromBuffer(Buffer.from(await img.arrayBuffer()))
+  );
 }
 export function useKeyPress(targetKey: string) {
   // State for keeping track of whether key is pressed
@@ -62,10 +51,20 @@ export const imageMatcher = new RegExp(/\.(jp(e)?g|png|gif)$/);
 export const videoMatcher = new RegExp(/\.(mp4|webm)$/);
 export const audioMatcher = new RegExp(/\.(mp3|m4a|ogg)$/);
 
-export async function downloadFileAsBlob(url: string) {
-  const data = await axios
-    .get(url, { responseType: "blob" })
-    .then((x) => x.data as Blob);
+export async function downloadFileAsBlob(
+  url: string,
+  cancelToken?: CancelToken
+) {
+  const data = await new Promise<Blob>((resolve, reject) => {
+    axios
+      .get(url, { responseType: "blob", cancelToken })
+      .then((x) => x.data as Blob)
+      .then((d) => {
+        if (d.type.match(/\image\//)) return resolve(d);
+        return reject(new Error("Invalid Image"));
+      })
+      .catch(reject);
+  });
   const uri = URL.createObjectURL(data);
   return {
     data,
@@ -75,3 +74,20 @@ export async function downloadFileAsBlob(url: string) {
 export function openDirectory(dir: string) {
   return ipcRenderer.send("api/dir:open", dir);
 }
+export const useCancelToken = (criteria?: any) => {
+  const axiosSource = useRef<CancelTokenSource | null>(null);
+  const newCancelToken = useCallback(() => {
+    axiosSource.current = axios.CancelToken.source();
+    return axiosSource.current.token;
+  }, []);
+  const prevCriteria = useRef<any>();
+  useEffect(() => {
+    if (prevCriteria !== criteria) axiosSource.current?.cancel();
+    prevCriteria.current = criteria;
+    return () => {
+      axiosSource.current?.cancel();
+    };
+  }, []);
+
+  return { newCancelToken, isCancel: axios.isCancel };
+};

@@ -66,7 +66,13 @@ const navLinks: (
 export default function ({ children, ...props }: PropsWithChildren<any>) {
   const { asPath } = useRouter();
   const [showSelected, setShowSelected] = useState(false);
-  const downloadCount = useObservable(() => downloadsQuery.selectCount(), 0);
+  const downloadCount = useObservable(
+    () =>
+      downloadsQuery.selectCount(
+        (x) => !!x.status && ["active", "pending"].includes(x.status)
+      ),
+    0
+  );
   const selected = useObservable(() => postsQuery.selectActive());
   useEffect(() => {
     setShowSelected(!!asPath.match(/^\/($|hot|top)/));

@@ -1,12 +1,38 @@
 import { app, dialog, ipcMain, shell } from "electron";
+import {
+  initialize as initializeRemote,
+  enable as enableRemoteOnWC,
+} from "@electron/remote/main";
 import serve from "electron-serve";
 import { dirname, normalize } from "path";
 import { DownloadItem } from "renderer/stores/downloads";
 import { createWindow } from "./helpers";
-import { downloadNative, queue, PState } from "./helpers/downloadService";
+import {
+  downloadNative,
+  queue,
+  PState,
+  createDownloadWorker,
+} from "./helpers/downloadService";
+import Store from "electron-store";
 
 const isProd: boolean = process.env.NODE_ENV === "production";
+const appStore = new Store({
+  name: "booruStore",
+  encryptionKey: process.env.SECURE_STORE_ENCKEY,
+  fileExtension: "booru",
+});
+const defaultDownloadPath = app.getPath("downloads");
 
+ipcMain.handle("api/storage:clear", async () => {
+  appStore.clear();
+  return;
+});
+ipcMain.handle("api/storage:get", async (ev, key) => {
+  return appStore.get(key);
+});
+ipcMain.handle("api/storage:set", async (ev, key, value) => {
+  return appStore.set(key, value);
+});
 if (isProd) {
   serve({ directory: "app" });
 } else {
@@ -15,7 +41,7 @@ if (isProd) {
 
 (async () => {
   await app.whenReady();
-
+  initializeRemote();
   const mainWindow = createWindow("main", {
     width: 1000,
     height: 600,
@@ -46,24 +72,28 @@ if (isProd) {
   ipcMain.on("api/dir:open", async (ev, dir: string) => {
     if (dir) shell.openPath(dirname(dir));
   });
+  ipcMain.on("relay", (ev, evName, ...args) => {
+    console.log("[relay]\t", evName, ...args);
+    mainWindow.webContents.send(evName, ...args);
+  });
+  enableRemoteOnWC(mainWindow.webContents);
+  const downloadWorker = createDownloadWorker(mainWindow);
   ipcMain.on("api/add:download", async (ev, d: DownloadItem[]) => {
-    console.log("added dl", d);
     if (d?.length > 0) {
       queue.enqueue(
         d.map(
           (x) => () =>
-            downloadNative(x, (id, status, ...args) => {
-              mainWindow.webContents.send(
-                "api/status:download",
-                id,
-                status,
-                ...args
-              );
+            downloadWorker.run({
+              method: "addDownload",
+              parameters: [x, defaultDownloadPath],
             })
         )
       );
     }
     if (queue.size > 0 && !queue.state.RUNNING) queue.start();
+  });
+  mainWindow.on("close", async () => {
+    await downloadWorker.end();
   });
 })();
 app.on("window-all-closed", () => {

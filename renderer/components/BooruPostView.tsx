@@ -14,6 +14,7 @@ import {
   copyImage,
   downloadFileAsBlob,
   imageMatcher,
+  useCancelToken,
   videoMatcher,
 } from "@library/helper";
 import { SpinnerCircular } from "spinners-react";
@@ -23,7 +24,7 @@ import {
   HiDownload,
   HiExternalLink,
 } from "react-icons/hi";
-import axios from "axios";
+import axios, { AxiosError, CancelToken, CancelTokenSource } from "axios";
 
 interface Props {
   post: BooruPost;
@@ -39,7 +40,6 @@ function ImageView({
   source: src,
   post,
 }: Props & ViewProps) {
-  const booru = useBooru();
   const imageRef = useRef<HTMLImageElement>();
   const [error, setError] = useState<any>();
   useEffect(() => {
@@ -48,27 +48,35 @@ function ImageView({
   const [source, setSource] = useState<
     { data: Blob; uri: string } | null | undefined
   >();
+  const { newCancelToken, isCancel } = useCancelToken(src);
   useEffect(() => {
     setError(null);
     setSource(null);
     setIsLoading(true);
-    downloadFileAsBlob(src)
+    downloadFileAsBlob(src, newCancelToken())
       .then((x) => {
         if (error) setError(null);
-        if (isLoading) setIsLoading(false);
         setSource(x);
+        setIsLoading(false);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch((err: Error | AxiosError) => {
+        console.error(err);
+        if (axios.isAxiosError(err)) {
+          setError(err.message);
+        } else if (isCancel(err)) {
+          setError(undefined);
+        } else {
+          setError("Something went wrong");
+        }
         setSource(null);
+        setIsLoading(false);
       });
-  }, [src]);
+    return () => {
+      setIsLoading(false);
+    };
+  }, [src, newCancelToken, isCancel]);
   const handleImageCopy = async () => {
-    if (imageRef.current)
-      copyImage(imageRef.current, {
-        height: imageRef.current.clientHeight,
-        width: imageRef.current.clientWidth,
-      });
+    if (source?.data) await copyImage(source.data);
   };
   return (
     <React.Fragment>
@@ -76,7 +84,7 @@ function ImageView({
         <div className="relative flex flex-col justify-center z-0">
           {error ? (
             <div className="max-w-full h-32 w-96 mx-auto shadow-lg xl:rounded-lg bg-white flex flex-col items-center justify-center">
-              Unable to load image
+              {typeof error === "string" ? error : "Unable to load image"}
             </div>
           ) : isLoading ? (
             <div className="relative mx-auto inline-block h-64 w-96 max-w-full shadow-lg select-none rounded-lg overflow-hidden group">
@@ -152,6 +160,7 @@ function VideoView({
               <video
                 src={source}
                 controls
+                loop
                 className="align-top"
                 crossOrigin="anonymous"
                 onLoadedData={() => setIsLoading(false)}
@@ -192,12 +201,11 @@ export default function ({ post }: Props) {
   useEffect(() => {
     if (post.source !== source) {
       setSource(post.sample ?? post.source);
-      setIsLoading(true);
     }
   }, [post]);
   useEffect(() => {
     testFileType();
-  });
+  }, [source]);
   return (
     <div className="absolute inset-0 select-none">
       <div className="flex flex-col h-full overflow-hidden">
@@ -206,7 +214,7 @@ export default function ({ post }: Props) {
             <div className="flex-1"></div>
             <Button
               className="space-x-2"
-              onClick={() => booru.addDownload(post)}>
+              onClick={() => booru.addDownload(post, fileType)}>
               <HiDownload /> <span>Download</span>
             </Button>
           </div>
@@ -233,7 +241,7 @@ export default function ({ post }: Props) {
               "bg-white shadow-lg flex flex-col flex-1 rounded-t-lg mx-4 px-3.5",
               fileType === "other" ? "mt-20" : null
             )}>
-            <div className="my-3">
+            <div className="mt-3 mb-10 flex flex-col space-y-2">
               <div className="flex items-center">
                 <div className="h-10 text-lg flex-1 font-semibold">
                   {fileType?.toUpperCase()}
@@ -250,6 +258,22 @@ export default function ({ post }: Props) {
                   </div>
                 )}
               </div>
+              <div className="flex mr-2">
+                <p className="flex-1">Artist</p>
+                {post.artist || "unknown"}
+              </div>
+              <div className="flex mr-2">
+                <p className="flex-1">Type</p>
+                {post.type}
+              </div>
+              {post.refs?.size && (
+                <div className="flex mr-2">
+                  <p className="flex-1">Size</p>
+                  {post.refs.size < 1000
+                    ? `${post.refs.size.toFixed(0)} KB`
+                    : `${(post.refs.size / 1024).toFixed(2)} MB`}
+                </div>
+              )}
             </div>
           </div>
         </div>

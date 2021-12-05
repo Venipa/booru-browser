@@ -14,7 +14,7 @@ function Next() {
       </div>
       <div className='mt-1 w-full flex-wrap flex justify-center'>
         <Link href='/home'>
-          <a className='btn-blue'>Go to home page</a>
+          <button className='btn-blue'>Go to home page</button>
         </Link>
       </div>
     </React.Fragment>

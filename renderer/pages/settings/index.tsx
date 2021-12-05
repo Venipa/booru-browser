@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { useObservable } from "rxjs-hooks";
 import { settingsQuery } from "renderer/stores/settings";
 import StorageSettingsView from "@/components/settings/StorageSettingsView";
+import GeneralSettingsView from "@/components/settings/GeneralSettingsView";
+import DisplaySettingsView from "@/components/settings/DisplaySettingsView";
 
 export default function () {
   const settings = useObservable(
@@ -24,6 +26,21 @@ export default function () {
                   <p className="mt-1 text-sm text-gray-500">
                     General settings
                   </p>
+                  <div className="mt-4">
+                    <GeneralSettingsView />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="mt-4">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Display
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Display settings
+                  </p>
+                  <div className="mt-4">
+                  </div>
                 </div>
               </div>
               <div>

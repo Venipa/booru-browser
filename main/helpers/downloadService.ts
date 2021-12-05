@@ -1,30 +1,49 @@
-import { app, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import { writeFile } from "fs";
 import { clamp, debounce } from "lodash";
 import { cpus } from "os";
 import { DownloadItem } from "renderer/stores/downloads";
-import PQueue from "queue-promise";
 import path, { dirname } from "path";
-import XMLHttpRequest from "xhr2";
+import XMLHttpRequest2 from "xhr2";
 import { access } from "fs/promises";
+import { ElectronThread } from "electron-threads";
+import PQueue from "queue-promise";
+const concurrentMax = clamp(cpus().length / 2, 1, 6);
+const cwd = process.cwd();
+export const queue = new PQueue({
+  start: false,
+  concurrent: concurrentMax,
+});
+queue.on("reject", (...args) => console.error("error", ...args));
+queue.on("resolve", (...args) => console.log("completed", ...args));
+export const createDownloadWorker = (win: BrowserWindow) => {
+  const module = path.join(__dirname, "download.worker");
+  return new ElectronThread(
+    {
+      module,
+      options: {
+        maxConcurrentThreads: concurrentMax,
+      },
+    },
+    win
+  );
+};
+
 export enum PState {
   IDLE = 0,
   RUNNING = 1,
   STOPPED = 2,
 }
-export const queue = new PQueue({
-  start: false,
-  concurrent: clamp(cpus().length / 2, 1, 6),
-});
-queue.on("reject", (...args) => console.error("error", ...args));
-queue.on("resolve", (...args) => console.log("completed", ...args));
 
 export async function downloadNative(
   d: DownloadItem,
   onUpdate: (id: string, status: string, ...args: any[]) => void
 ) {
   onUpdate(d.id, "active");
-  const type = d.post.type || d.post.source.match(/\.(\w+)$/)?.[1];
+  const type =
+    d.post.type ||
+    d.post.source?.match(/\.(\w+)$/)?.[1] ||
+    d.post.sample?.match(/\.(\w+)$/)?.[1];
   const newPath = path.normalize(
     d.path ?? path.join(app.getPath("downloads"), `${d.id}.${type}`)
   );
@@ -37,12 +56,13 @@ export async function downloadNative(
     throw new Error("Path does not exist, " + newPath);
   }
   d.path = newPath;
+  d.post.type = type;
   let cancelled = false;
   ipcMain.once("api/cancel:download/" + d.id, () => {
     cancelled = true;
   });
   const data = await new Promise<Buffer>((resolve, reject) => {
-    let xhr: XMLHttpRequest = new XMLHttpRequest();
+    let xhr: XMLHttpRequest = new XMLHttpRequest2();
     xhr.open("GET", d.post.source);
     xhr.responseType = "arraybuffer";
     xhr.onprogress = (ev: ProgressEvent) => {

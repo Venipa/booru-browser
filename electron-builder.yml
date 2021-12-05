@@ -1,6 +1,6 @@
-appId: com.example.nextron
-productName: My Nextron App
-copyright: Copyright © 2018 Yoshihide Shiono
+appId: net.venipa.booru
+productName: Booru Browser
+copyright: Copyright © 2021 Venipa
 directories:
   output: dist
   buildResources: resources

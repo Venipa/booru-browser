@@ -10,12 +10,11 @@ import { useObservable } from "rxjs-hooks";
 import { HiFolder, HiSave, HiSaveAs, HiSelector } from "react-icons/hi";
 import { dialog } from "electron";
 import { ipcRenderer } from "electron";
-import { useEffect, useMemo, useState } from "react";
-import { debounce } from "lodash";
+import { useEffect } from "react";
 
 const schema = yup
   .object({
-    downloadPath: yup
+    path: yup
       .string()
       .required()
       .test(
@@ -42,43 +41,38 @@ export default function () {
     control,
     handleSubmit,
     setValue,
-    getValues,
-    watch,
     formState: { errors, isValid, isDirty },
   } = useForm({
-    defaultValues: useMemo(() => {
-      return {
-        downloadPath: settings.downloadPath,
-      };
-    }, [settings]),
+    defaultValues: {
+      path: settings.downloadPath,
+    },
     resolver: yupResolver(schema),
+    reValidateMode: "onChange",
+    criteriaMode: "firstError",
+  });
+  useEffect(() => {
+    handleSubmit((...args) => console.log(...args));
   });
   const onSubmit = (data: typeof schema.__inputType) => {
     settingsStore.update((state) => {
-      if (data.downloadPath) state.downloadPath = data.downloadPath;
+      if (data.path) state.downloadPath = data.path;
     });
   };
-  const [values, setValues] = useState(getValues());
-  watch(debounce((value) => setValues(value)));
-  useEffect(() => {
-    if (values && isValid) onSubmit(values as any);
-  }, [values]);
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Controller
-        name="downloadPath"
+        name="path"
         control={control}
         render={({ field }) => (
           <div
             className="cursor-pointer"
-            onClick={(ev) => {
-              ev.preventDefault();
+            onClick={() =>
               ipcRenderer.invoke("api/dir:select").then((x) => {
                 if (x) {
-                  setValue(field.name, x);
+                  setValue("path", x);
                 }
-              });
-            }}>
+              })
+            }>
             <FormControl
               {...field}
               id={field.name}
@@ -91,6 +85,9 @@ export default function () {
           </div>
         )}
       />
+      <Button type="submit" className="mt-8" disabled={isDirty && !isValid}>
+        Save Changes
+      </Button>
     </form>
   );
 }

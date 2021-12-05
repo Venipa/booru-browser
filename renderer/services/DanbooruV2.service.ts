@@ -6,22 +6,27 @@ import BooruService, { BooruHttpOptions } from "./BooruService";
 
 export class DanbooruService implements BooruService {
   private http: Axios;
+  lastSearch?: string | undefined;
   constructor(private _server: ServerType) {
     this.http = new Axios({
       baseURL: _server.url,
     });
   }
-  async get(page: number = 1, args: Partial<BooruHttpOptions>) {
+  async get(page: number = 1, args: Partial<BooruHttpOptions & { tags: string[] }>) {
+    let search = args.q,
+    tags = search?.match(/\+(\w+)/g)?.map(x => x.substring(1)) || undefined;
+    if (tags?.length) search = search!.replace(/\+(\w+)/g, ""); 
     return await this.http
       .get(`/posts.json`, {
         params: {
-          [`search[name_matches]`]: args?.q || "*",
+          [`search[name_matches]`]: search || "*",
           page: clamp(page, 1, page),
-          tags: args.tags
+          tags: tags?.join(" "),
         },
       })
       .then((x) => JSON.parse(x.data))
       .then((x) => {
+        if (args.q) this.lastSearch = args.q;
         if (x?.length > 0) {
           return x
             .filter((x: any) => x?.id)
@@ -50,10 +55,12 @@ export class DanbooruService implements BooruService {
                   width,
                   hash,
                   score,
-                  tags: (tag_string_general || tags_string)?.split(" ") || [],
+                  tags: (tags_string || tag_string_general)?.split(" ") || [],
                   rating:
                     {
                       s: "safe",
+                      e: "nsfw",
+                      n: "nsfw",
                     }[rating as string] || `${rating}`,
                   image,
                   sample,
@@ -64,9 +71,10 @@ export class DanbooruService implements BooruService {
                     `${tag_string_copyright || ""}`.split(" ")[0] || null,
                   refs: {
                     pixiv: other.pixiv_id,
-                    isLarge: !!other.has_large
+                    isLarge: !!other.has_large,
+                    size: other.file_size ? other.file_size / 1024 : null,
                   },
-                  type: other.type,
+                  type: other.file_ext || other.type,
                   date: updated_at || created_at,
                 };
                 return next;

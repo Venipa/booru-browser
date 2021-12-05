@@ -6,7 +6,6 @@ const tailwindForms = require("@tailwindcss/forms");
  * @type {import("tailwindcss/tailwind-config").TailwindConfig}
  */
 module.exports = {
-  mode: "aot",
   purge: {
     enabled: false,
     content: [
@@ -98,5 +97,6 @@ module.exports = {
     }),
     require("@tailwindcss/typography"),
     require("@tailwindcss/aspect-ratio"),
+    require("@tailwindcss/forms"),
   ],
 };

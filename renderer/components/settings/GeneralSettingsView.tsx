@@ -15,22 +15,7 @@ import { debounce } from "lodash";
 
 const schema = yup
   .object({
-    downloadPath: yup
-      .string()
-      .required()
-      .test(
-        "path-exits",
-        "Path must be valid and exist",
-        (v) =>
-          new Promise((resolve) =>
-            resolve(
-              (v && v === settingsStore.getValue().downloadPath) ||
-                access(v!)
-                  .then(() => true)
-                  .catch(() => false)
-            )
-          )
-      ),
+    autoUpdate: yup.boolean(),
   })
   .required();
 export default function () {
@@ -38,54 +23,46 @@ export default function () {
     () => settingsQuery.select(),
     settingsQuery.getValue()
   );
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    getValues,
-    watch,
-    formState: { errors, isValid, isDirty },
-  } = useForm({
-    defaultValues: useMemo(() => {
-      return {
-        downloadPath: settings.downloadPath,
-      };
-    }, [settings]),
-    resolver: yupResolver(schema),
-  });
+  const { control, handleSubmit, setValue, getValues, formState, watch } =
+    useForm({
+      defaultValues: {
+        autoUpdate: settings.autoUpdate,
+      },
+      resolver: yupResolver(schema),
+      reValidateMode: "onBlur",
+      mode: "onBlur",
+    });
+  const { errors, isValid, isDirty, isValidating } = formState;
   const onSubmit = (data: typeof schema.__inputType) => {
     settingsStore.update((state) => {
-      if (data.downloadPath) state.downloadPath = data.downloadPath;
+      if (data.autoUpdate !== state.autoUpdate)
+        state.autoUpdate = !!data.autoUpdate;
     });
   };
   const [values, setValues] = useState(getValues());
-  watch(debounce((value) => setValues(value)));
+  watch(debounce((value) => setValues(value as any)));
   useEffect(() => {
-    if (values && isValid) onSubmit(values as any);
+    if (isValid) onSubmit(values as any);
   }, [values]);
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} onChange={(ev) => console.log(ev)}>
       <Controller
-        name="downloadPath"
+        name="autoUpdate"
         control={control}
         render={({ field }) => (
           <div
-            className="cursor-pointer"
             onClick={(ev) => {
               ev.preventDefault();
-              ipcRenderer.invoke("api/dir:select").then((x) => {
-                if (x) {
-                  setValue(field.name, x);
-                }
-              });
-            }}>
+              setValue(field.name, !field.value);
+            }}
+            className="cursor-pointer">
             <FormControl
               {...field}
               id={field.name}
-              label="Download Path"
+              label="Auto Update"
               isError={!!errors[field.name]}
-              suffix={<HiFolder className="w-6 h-6 -mt-2" />}
-              className="select-none pointer-events-none"
+              className="cursor-pointer"
+              type="checkbox"
             />
             <FormError className="ml-3 mt-1" error={errors[field.name]} />
           </div>

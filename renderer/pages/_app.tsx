@@ -13,7 +13,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     persistStore();
     initializeServers();
-  });
+  }, []);
   const getLayout = (Component as any).getLayout ?? ((page: any) => page);
   return (
     <React.Fragment>

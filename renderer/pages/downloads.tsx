@@ -7,6 +7,7 @@ import { Order } from "@datorama/akita";
 import { map } from "rxjs/operators";
 import { firstBy } from "thenby";
 import { openDirectory } from "@library/helper";
+import { clamp } from "lodash";
 
 export default function () {
   const downloads = useObservable(() =>
@@ -16,7 +17,7 @@ export default function () {
   );
   return (
     <React.Fragment>
-      <div className="flex flex-col h-full w-full bg-white bg-opacity-50">
+      <div className="flex flex-col h-full w-full bg-white bg-opacity-50 overflow-auto pb-32">
         <div className="flex flex-col lg:flex-row lg:flex-wrap gap-1.5 lg:gap-2.5 py-2 mx-2">
           <div className="flex flex-col flex-1 space-y-8 divide-y divide-gray-200">
             <div className="space-y-8 divide-y divide-gray-200">
@@ -33,10 +34,29 @@ export default function () {
                     <ul role="list" className="space-y-2.5">
                       {downloads && downloads.length > 0 ? (
                         downloads
-                          .map((d) => ({ ...d, date: new Date(d.date) }))
+                          .map((d) => ({
+                            ...d,
+                            date: new Date(d.date),
+                            pogress: d.pogress
+                              ? {
+                                  ...d.pogress,
+                                  p: clamp(
+                                    (d.pogress.loaded / d.pogress.total) * 100,
+                                    0.0,
+                                    100.0
+                                  ),
+                                }
+                              : undefined,
+                          }))
                           .map((d) => {
                             return (
-                              <li key={d.id} className="flex flex-col flex-1" onClick={() => d.status === "completed" && openDirectory(d.path!)}>
+                              <li
+                                key={d.id}
+                                className="flex flex-col flex-1"
+                                onClick={() =>
+                                  d.status === "completed" &&
+                                  openDirectory(d.path!)
+                                }>
                                 <button className="block bg-gray-50 rounded-lg flex-1 border border-gray-200">
                                   <div className="px-4 py-4 sm:px-6">
                                     <div className="flex items-center justify-between">
@@ -52,22 +72,56 @@ export default function () {
                                     <div className="mt-2 flex justify-between">
                                       <div className="flex">
                                         <p className="flex items-center text-sm text-gray-500">
-                                          <HiExternalLink
-                                            className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
-                                          />
+                                          <HiExternalLink className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
                                           {d.path}
                                         </p>
                                       </div>
                                       <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                                        <HiCalendar
-                                          className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
-                                        />
-                                        <p>
-                                          Added at{" "}
-                                          <time dateTime={d.date.toISOString()}>
-                                            {format(d.date, "Pp")}
-                                          </time>
-                                        </p>
+                                        {d.status === "active" && d.pogress ? (
+                                          <div className="text-green-700 space-x-2 flex items-center">
+                                            <span>
+                                              {(
+                                                d.pogress.loaded /
+                                                (1024 * 1024)
+                                              ).toFixed(2)}
+                                              MB /{" "}
+                                              {(
+                                                d.pogress.total /
+                                                (1024 * 1024)
+                                              ).toFixed(2)}
+                                              MB
+                                            </span>
+                                            <div className="h-2 w-px bg-gray-300"></div>
+                                            <span>
+                                              {d.pogress.p.toFixed(0)}%
+                                            </span>
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center flex-shrink-0 space-x-1.5">
+                                            <div className="space-x-1.5 flex items-center">
+                                              <HiCalendar className="flex-shrink-0 h-5 w-5 text-gray-400" />
+                                              <p>
+                                                Added at{" "}
+                                                <time
+                                                  dateTime={d.date.toISOString()}>
+                                                  {format(d.date, "Pp")}
+                                                </time>
+                                              </p>
+                                            </div>
+                                            {d.status === "completed" &&
+                                              d.pogress && (
+                                                <>
+                                                  <div className="h-2 w-px bg-gray-300"></div>
+                                                  <div>
+                                                    {(
+                                                      d.pogress.total /
+                                                      (1024 * 1024)
+                                                    ).toFixed(2)} MB
+                                                  </div>
+                                                </>
+                                              )}
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   </div>

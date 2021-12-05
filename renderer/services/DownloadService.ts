@@ -5,7 +5,7 @@ import {
   downloadsQuery,
   downloadsStore,
 } from "renderer/stores/downloads";
-import { BooruPost } from "renderer/stores/posts";
+import { BooruPost, FileType } from "renderer/stores/posts";
 import { download } from "electron-dl";
 import { settingsQuery } from "renderer/stores/settings";
 import { Order } from "@datorama/akita";
@@ -20,6 +20,7 @@ function watchStatus(ev: any, id: string, status: string, ...args: any[]) {
     const [loaded, total] = args;
     downloadsStore.update(id, (state) => {
       state.status = status;
+      state.pogress = { loaded, total };
     });
   } else if (status === "removed") {
     downloadsStore.remove(id);
@@ -36,16 +37,19 @@ export default class DownloadService {
   private _queueActive: Subject<void> | undefined;
   constructor() {}
 
-  addDownload(d: BooruPost) {
+  addDownload(d: BooruPost, fileType?: FileType) {
     const id = randomUUID();
     const downloadPath = settingsQuery.getValue().downloadPath;
+    const source = fileType === "video" ? d.sample : d.source;
+    const type = source.match(/\.(\w+)$/)?.[1];
     downloadsStore.upsert(id, {
       id,
       date: new Date().toISOString(),
       path: downloadPath
-        ? downloadPath?.replace(/\/$/, "") + `/${d.id}.${d.type}`
+        ? downloadPath?.replace(/\/$/, "") + `/${d.id}.${type || d.type}`
         : undefined,
       post: d,
+      url: source,
       status: "pending",
     });
   }

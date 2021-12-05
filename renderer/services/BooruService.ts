@@ -4,6 +4,7 @@ import { DanbooruPHPService } from "./DanbooruPHP.service";
 import { DanbooruService } from "./DanbooruV2.service";
 
 export default interface BooruService<T = any> {
+  lastSearch?: string;
   get(page: number, args: Partial<BooruHttpOptions>): Promise<BooruPost[]>;
   getByTop(q: string, page?: number): Promise<BooruPost[]>;
   getByHot(q: string, page?: number): Promise<BooruPost[]>;
