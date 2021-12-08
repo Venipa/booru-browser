@@ -3,7 +3,10 @@ import {
   createEntityQuery,
   createEntityStore,
   EntityState,
+  EntityStore,
   Order,
+  Store,
+  StoreConfig,
 } from "@datorama/akita";
 import produce from "immer";
 export type FileType = "image" | "video" | "audio" | "other";
@@ -28,11 +31,16 @@ export interface BooruPost {
 export interface BooruPostState
   extends EntityState<BooruPost, string>,
     ActiveState {}
-
-export const postsStore = createEntityStore<BooruPostState>(
-  {},
-  { name: "posts", producerFn: produce }
-);
+@StoreConfig({
+  name: "posts",
+  producerFn: produce,
+})
+class PostsStore extends EntityStore<BooruPostState> {
+  constructor() {
+    super();
+  }
+}
+export const postsStore = new PostsStore();
 export const postsQuery = createEntityQuery(postsStore, {
   sortBy: (x) => Date.parse(x.date),
   sortByOrder: Order.DESC,

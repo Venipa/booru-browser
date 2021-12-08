@@ -12,10 +12,12 @@ export class DanbooruService implements BooruService {
       baseURL: _server.url,
     });
   }
-  async get(page: number = 1, args: Partial<BooruHttpOptions & { tags: string[] }>) {
+  async get(
+    page: number = 1,
+    args: Partial<BooruHttpOptions & { tags: string[] }>
+  ) {
     let search = args.q,
-    tags = search?.match(/\+(\w+)/g)?.map(x => x.substring(1)) || undefined;
-    if (tags?.length) search = search!.replace(/\+(\w+)/g, ""); 
+      tags = search?.split(" ") || undefined;
     return await this.http
       .get(`/posts.json`, {
         params: {
@@ -24,7 +26,7 @@ export class DanbooruService implements BooruService {
           tags: tags?.join(" "),
         },
       })
-      .then((x) => JSON.parse(x.data))
+      .then((x) => x.data ? JSON.parse(x.data) : [])
       .then((x) => {
         if (args.q) this.lastSearch = args.q;
         if (x?.length > 0) {

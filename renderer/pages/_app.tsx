@@ -1,19 +1,28 @@
-import React from "react";
+import '@/styles/globals.scss';
+
+import { DialogProvider, DialogRoot } from '@/components/Dialog';
+import LoadingView from '@/components/LoadingView';
+import React from 'react';
+import { useEffect } from 'react';
+import BaseLayout from 'renderer/Layouts/BaseLayout';
+import BooruProvider from 'renderer/services/BooruProvider';
+import { initializeServers } from 'renderer/stores/server';
+import { persistStore, useInitializedPersist } from 'renderer/stores/storeHandler';
+
 import type { AppProps } from "next/app";
 
-import "@/styles/globals.scss";
-import BaseLayout from "renderer/Layouts/BaseLayout";
-import { useEffect } from "react";
-import { persistState } from "@datorama/akita";
-import { initializeServers } from "renderer/stores/server";
-import BooruProvider from "renderer/services/BooruProvider";
-import { DialogProvider, DialogRoot } from "@/components/Dialog";
-import { persistStore } from "renderer/stores/storeHandler";
 function MyApp({ Component, pageProps }: AppProps) {
+  const isInitialized = useInitializedPersist();
   useEffect(() => {
     persistStore();
     initializeServers();
   }, []);
+  if (!isInitialized)
+    return (
+      <React.Fragment>
+        <LoadingView />
+      </React.Fragment>
+    );
   const getLayout = (Component as any).getLayout ?? ((page: any) => page);
   return (
     <React.Fragment>

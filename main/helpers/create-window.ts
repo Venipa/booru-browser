@@ -1,18 +1,6 @@
-import {
-  screen,
-  BrowserWindow,
-  BrowserWindowConstructorOptions,
-  shell,
-} from "electron";
-import Store from "electron-store";
-const SecureHeaders = {
-  "sec-ch-ua": ` Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96`,
-  "sec-ch-ua-mobile": `?0`,
-  "sec-ch-ua-platform": "Windows",
-  "sec-fetch-dest": "document",
-  "sec-fetch-mode": "no-cors",
-  "sec-fetch-site": "same-origin",
-};
+import { BrowserWindow, BrowserWindowConstructorOptions, screen, shell } from 'electron';
+import Store from 'electron-store';
+
 type WindowState = {
   x: number;
   y: number;
@@ -91,6 +79,7 @@ export default (
       nodeIntegration: true,
       contextIsolation: false,
       webSecurity: false,
+      nativeWindowOpen: true,
       ...options.webPreferences,
     },
   };
@@ -120,7 +109,6 @@ export default (
     callback({
       responseHeaders: {
         "Access-Control-Allow-Origin": ["*"],
-        ...SecureHeaders,
         ...details.responseHeaders,
       },
     });

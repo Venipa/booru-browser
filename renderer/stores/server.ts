@@ -1,11 +1,6 @@
-import {
-  ActiveState,
-  createEntityQuery,
-  createEntityStore,
-  EntityState,
-  Order,
-} from "@datorama/akita";
-import produce from "immer";
+import { ActiveState, createEntityQuery, createEntityStore, EntityState, Order } from '@datorama/akita';
+import produce from 'immer';
+
 export enum EndpointType {
   "danbooru_v2",
   "danbooru_php",

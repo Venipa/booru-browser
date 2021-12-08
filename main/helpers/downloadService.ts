@@ -1,13 +1,14 @@
-import { app, BrowserWindow, ipcMain } from "electron";
-import { writeFile } from "fs";
-import { clamp, debounce } from "lodash";
-import { cpus } from "os";
-import { DownloadItem } from "renderer/stores/downloads";
-import path, { dirname } from "path";
-import XMLHttpRequest2 from "xhr2";
-import { access } from "fs/promises";
-import { ElectronThread } from "electron-threads";
-import PQueue from "queue-promise";
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { ElectronThread } from 'electron-threads';
+import { writeFile } from 'fs';
+import { access } from 'fs/promises';
+import { clamp } from 'lodash';
+import { cpus } from 'os';
+import path, { dirname } from 'path';
+import PQueue from 'queue-promise';
+import { DownloadItem } from 'renderer/stores/downloads';
+import XMLHttpRequest2 from 'xhr2';
+
 const concurrentMax = clamp(cpus().length / 2, 1, 6);
 const cwd = process.cwd();
 export const queue = new PQueue({

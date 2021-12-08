@@ -59,6 +59,7 @@ export default function () {
             <FormControl
               {...field}
               id={field.name}
+              value={field.value as any}
               label="Auto Update"
               isError={!!errors[field.name]}
               className="cursor-pointer"

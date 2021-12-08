@@ -41,7 +41,7 @@ async function handleDownload(d: DownloadItem, defaultPath: string) {
   ipcRenderer.once("api/cancel:download/" + d.id, () => {
     cancelled = true;
   });
-  const data = await new Promise<Buffer>((resolve, reject) => {
+  const [data, dataLoaded, dataTotal] = await new Promise<[Buffer, number, number]>((resolve, reject) => {
     const statusInterval = interval(100)
       .pipe(takeUntil(completedSubject))
       .subscribe(() => {
@@ -64,7 +64,7 @@ async function handleDownload(d: DownloadItem, defaultPath: string) {
         state.next([d.id, "active", ev.loaded, ev.total]);
     };
     xhr.onload = (ev) => {
-      resolve(Buffer.from(xhr.response, "binary"));
+      resolve([Buffer.from(xhr.response, "binary"), ev.loaded, ev.total]);
     };
     xhr.onerror = (ev) => {
       onUpdate(d.id, "cancelled");
@@ -85,7 +85,7 @@ async function handleDownload(d: DownloadItem, defaultPath: string) {
     completedSubject$destroy();
     return Promise.reject(err);
   });
-  onUpdate(d.id, "completed", d);
+  onUpdate(d.id, "completed", d, dataLoaded, dataTotal);
   return d;
 }
 

@@ -65,7 +65,7 @@ const navLinks: (
 ];
 export default function ({ children, ...props }: PropsWithChildren<any>) {
   const { asPath } = useRouter();
-  const [showSelected, setShowSelected] = useState(false);
+  const [showSelected, setShowSelected] = useState(!!asPath.match(/^\/($|hot|top)/));
   const downloadCount = useObservable(
     () =>
       downloadsQuery.selectCount(

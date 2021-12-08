@@ -13,6 +13,7 @@ import FormControl from "@/components/FormControl";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
 import { Controller, useForm } from "react-hook-form";
+import PostThumbnailItem from "@/components/posts/PostThumbnailItem";
 const breakpointColumnsObj = {
   default: 7,
   2000: 6,
@@ -58,7 +59,7 @@ function Home() {
     postsStore.setLoading(true);
     booru
       .service!.get(1, {
-        q: data.search
+        q: data.search,
       })
       .then((x) => {
         postsStore.set(x);
@@ -109,27 +110,13 @@ function Home() {
               columnClassName="pl-8 bg-clip-padding space-y-6 flex flex-col justify-between items-center">
               {posts?.map((p) => {
                 return (
-                  <div
-                    className={classNames(
-                      `inline-block group mx-auto cursor-pointer`,
-                      selected && p.id === selected.id
-                        ? "ring-4 rounded ring-purple-500 z-10"
-                        : "opacity-60"
-                    )}
+                  <PostThumbnailItem
                     key={p.id}
-                    onClick={() => postsStore.setActive(p.id)}>
-                    <img
-                      className={classNames(
-                        "w-full align-top transform transition-transform duration-150 rounded",
-                        selected?.id === p.id ? null : "group-hover:scale-105"
-                      )}
-                      src={p.thumbnail}
-                      alt="Thumbnail"
-                    />
-                  </div>
+                    item={p}
+                    selected={!!selected && selected.id === p.id}
+                  />
                 );
               })}
-              {/* array of JSX items */}
             </Masonry>
           </div>
         </div>

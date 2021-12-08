@@ -1,27 +1,29 @@
-import { app, dialog, ipcMain, shell } from "electron";
 import {
-  initialize as initializeRemote,
   enable as enableRemoteOnWC,
+  initialize as initializeRemote,
 } from "@electron/remote/main";
+import { app, dialog, ipcMain, shell } from "electron";
 import serve from "electron-serve";
-import { dirname, normalize } from "path";
-import { DownloadItem } from "renderer/stores/downloads";
-import { createWindow } from "./helpers";
-import {
-  downloadNative,
-  queue,
-  PState,
-  createDownloadWorker,
-} from "./helpers/downloadService";
 import Store from "electron-store";
+import { dirname } from "path";
+import { DownloadItem } from "renderer/stores/downloads";
+import type { SettingsType } from "renderer/stores/settings";
+
+import { createWindow } from "./helpers";
+import { createDownloadWorker, queue } from "./helpers/downloadService";
 
 const isProd: boolean = process.env.NODE_ENV === "production";
+const defaultDownloadPath = app.getPath("downloads");
 const appStore = new Store({
   name: "booruStore",
   encryptionKey: process.env.SECURE_STORE_ENCKEY,
   fileExtension: "booru",
+  defaults: {
+    settings: <SettingsType>{
+      downloadPath: defaultDownloadPath,
+    },
+  },
 });
-const defaultDownloadPath = app.getPath("downloads");
 
 ipcMain.handle("api/storage:clear", async () => {
   appStore.clear();

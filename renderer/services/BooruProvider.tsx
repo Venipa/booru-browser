@@ -1,11 +1,16 @@
-import React, { createContext, PropsWithChildren, useEffect, useState } from 'react';
-import { postsStore } from 'renderer/stores/posts';
-import { serverQuery } from 'renderer/stores/server';
-import { useObservable } from 'rxjs-hooks';
+import React, {
+  createContext,
+  PropsWithChildren,
+  useEffect,
+  useState,
+} from "react";
+import { postsStore } from "renderer/stores/posts";
+import { serverQuery } from "renderer/stores/server";
+import { useObservable } from "rxjs-hooks";
 
-import BooruContext from './BooruContext';
-import BooruService, { createFactory } from './BooruService';
-import DownloadService from './DownloadService';
+import BooruContext from "./BooruContext";
+import BooruService, { createFactory } from "./BooruService";
+import DownloadService from "./DownloadService";
 
 const downloadService = new DownloadService();
 const BooruProvider = ({ children, ...props }: PropsWithChildren<any>) => {
@@ -16,7 +21,10 @@ const BooruProvider = ({ children, ...props }: PropsWithChildren<any>) => {
   const [service, setService] = useState<BooruService>();
   useEffect(() => {
     downloadService.watchQueue();
-  });
+    return () => {
+      downloadService.stopQueue();
+    }
+  }, []);
   useEffect(() => {
     let service: BooruService | null;
     if (active && (service = createFactory(active))) {

@@ -1,17 +1,16 @@
+import { Order } from "@datorama/akita";
 import { randomUUID } from "crypto";
-import PQueue from "p-queue";
+import { ipcRenderer } from "electron";
 import {
   DownloadItem,
   downloadsQuery,
   downloadsStore,
 } from "renderer/stores/downloads";
 import { BooruPost, FileType } from "renderer/stores/posts";
-import { download } from "electron-dl";
 import { settingsQuery } from "renderer/stores/settings";
-import { Order } from "@datorama/akita";
-import { fromEvent, Subject } from "rxjs";
+import { Subject } from "rxjs";
 import { switchMap, takeUntil } from "rxjs/operators";
-import { ipcRenderer } from "electron";
+
 function watchStatus(ev: any, id: string, status: string, ...args: any[]) {
   console.log("status", id, status, ...args);
   const isCompleted = downloadsQuery.getEntity(id)?.status === "completed";
@@ -20,13 +19,20 @@ function watchStatus(ev: any, id: string, status: string, ...args: any[]) {
     const [loaded, total] = args;
     downloadsStore.update(id, (state) => {
       state.status = status;
-      state.pogress = { loaded, total };
+      state.pogress = { loaded: ~~loaded, total: ~~total };
     });
   } else if (status === "removed") {
     downloadsStore.remove(id);
   } else if (status === "completed") {
-    const [entity] = args;
-    downloadsStore.upsert(id, { ...entity, status });
+    const [entity, loaded, total] = args;
+    downloadsStore.upsert(id, {
+      ...entity,
+      status,
+      pogress: {
+        loaded: ~~loaded,
+        total: ~~total,
+      },
+    });
   } else {
     downloadsStore.update(id, (state) => {
       state.status = status;
@@ -40,6 +46,9 @@ export default class DownloadService {
   addDownload(d: BooruPost, fileType?: FileType) {
     const id = randomUUID();
     const downloadPath = settingsQuery.getValue().downloadPath;
+    if (fileType === undefined && d.sample.match(/\.(mp4|mp3|webm|mov)$/)) {
+      fileType = "video";
+    }
     const source = fileType === "video" ? d.sample : d.source;
     const type = source.match(/\.(\w+)$/)?.[1];
     downloadsStore.upsert(id, {
@@ -80,6 +89,9 @@ export default class DownloadService {
         })
       )
       .subscribe();
+  }
+  get queueActive() {
+    return !!this._queueActive && !this._queueActive.closed;
   }
   stopQueue() {
     this._queueActive?.next();

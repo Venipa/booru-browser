@@ -28,9 +28,10 @@ export class DanbooruPHPService implements BooruService {
         params: {
           ...this.defaultParams,
           pid: clamp(page, 1, page),
+          tags: args.q,
         },
       })
-      .then((x) => JSON.parse(x.data))
+      .then((x) => x.data ? JSON.parse(x.data) : [])
       .then((x) => {
         if (args.q) this.lastSearch = args.q;
         if (x?.length > 0) {
@@ -52,6 +53,8 @@ export class DanbooruPHPService implements BooruService {
               }: any) => {
                 const baseUrl = this.baseUrl;
                 const imageId = image.match(/^(.*)\./)[1];
+                const type = `${image}`.match(/\.(\w+)$/)?.[1];
+                const source = `${baseUrl}/images/${directory}/${image}`;
                 const next: BooruPost = {
                   id,
                   height,
@@ -61,13 +64,13 @@ export class DanbooruPHPService implements BooruService {
                   tags: tags?.split(" ") || [],
                   rating: "safe",
                   image,
-                  sample: `${baseUrl}/samples/${directory}/sample_${imageId}.jpg`,
+                  sample: other.sample === false ? source : `${baseUrl}/samples/${directory}/sample_${imageId}.jpg`,
                   thumbnail: `${baseUrl}/thumbnails/${directory}/thumbnail_${imageId}.jpg`,
-                  source: `${baseUrl}/images/${directory}/${image}`,
+                  source,
                   date: change
                     ? new Date(change * 1000).toISOString()
                     : undefined,
-                  type: `${image}`.match(/\.(\w+)$/)?.[1],
+                  type,
                 };
                 return next;
               }
@@ -78,7 +81,7 @@ export class DanbooruPHPService implements BooruService {
   }
   createPostUrl(id: string | number) {
     const uri = this._server.url.replace(/\/$/, "");
-    return `${uri}/posts/${id}`;
+    return `${uri}/index.php?page=post&s=view&id=${id}`;
   }
   getByTop(q: string, page?: number): Promise<any> {
     throw new Error("Method not implemented.");
