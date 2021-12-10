@@ -1,5 +1,4 @@
-import { Order } from "@datorama/akita";
-import { randomUUID } from "crypto";
+import { guid, Order } from "@datorama/akita";
 import { ipcRenderer } from "electron";
 import {
   DownloadItem,
@@ -9,7 +8,17 @@ import {
 import { BooruPost, FileType } from "renderer/stores/posts";
 import { settingsQuery } from "renderer/stores/settings";
 import { Subject } from "rxjs";
-import { switchMap, takeUntil } from "rxjs/operators";
+import {
+  filter,
+  first,
+  map,
+  skip,
+  switchMap,
+  take,
+  takeUntil,
+  tap,
+  timeout,
+} from "rxjs/operators";
 
 function watchStatus(ev: any, id: string, status: string, ...args: any[]) {
   console.log("status", id, status, ...args);
@@ -27,6 +36,7 @@ function watchStatus(ev: any, id: string, status: string, ...args: any[]) {
     const [entity, loaded, total] = args;
     downloadsStore.upsert(id, {
       ...entity,
+      id,
       status,
       pogress: {
         loaded: ~~loaded,
@@ -44,7 +54,7 @@ export default class DownloadService {
   constructor() {}
 
   addDownload(d: BooruPost, fileType?: FileType) {
-    const id = randomUUID();
+    const id = guid();
     const downloadPath = settingsQuery.getValue().downloadPath;
     if (fileType === undefined && d.sample.match(/\.(mp4|mp3|webm|mov)$/)) {
       fileType = "video";
@@ -60,6 +70,12 @@ export default class DownloadService {
       post: d,
       url: source,
       status: "pending",
+    });
+    return new Promise<DownloadItem | undefined>((resolve, reject) => {
+      return downloadsQuery
+        .selectEntity(id)
+        .pipe(first((x) => x?.status === "completed"))
+        .subscribe(resolve, reject);
     });
   }
   removeDownload(id: string) {

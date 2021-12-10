@@ -279,7 +279,9 @@ export default function ({ post }: Props) {
                   <div className="h-px w-full bg-gray-200"></div>
                   <div className="flex mr-2 flex-wrap gap-2">
                     {post.tags.map((x) => (
-                      <div className="bg-purple-200 text-gray-900 rounded px-2.5 h-8 text-sm leading-none flex items-center justify-center">
+                      <div
+                        className="bg-purple-200 text-gray-900 rounded px-2.5 h-8 text-sm leading-none flex items-center justify-center cursor-pointer"
+                        onClick={() => booru.service?.get(1, { q: x })}>
                         <span>{x}</span>
                       </div>
                     ))}

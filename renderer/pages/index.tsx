@@ -1,19 +1,16 @@
-import React, { useEffect, useState } from "react";
-import Head from "next/head";
-import Link from "next/link";
-import BaseLayout from "renderer/Layouts/BaseLayout";
-import { useBooru } from "renderer/services/BooruContext";
-import { useObservable } from "rxjs-hooks";
-import { postsQuery, postsStore } from "renderer/stores/posts";
-import { classNames, useKeyPress } from "@library/helper";
-import Image from "next/image";
-import { clamp } from "lodash-es";
-import Masonry from "react-masonry-css";
 import FormControl from "@/components/FormControl";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
-import { Controller, useForm } from "react-hook-form";
 import PostThumbnailItem from "@/components/posts/PostThumbnailItem";
+import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
+import { useKeyPress } from "@library/helper";
+import { clamp } from "lodash-es";
+import React, { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import Masonry from "react-masonry-css";
+import { useBooru } from "renderer/services/BooruContext";
+import { postsQuery, postsStore } from "renderer/stores/posts";
+import { useObservable } from "rxjs-hooks";
+import * as yup from "yup";
+
 const breakpointColumnsObj = {
   default: 7,
   2000: 6,
@@ -39,7 +36,6 @@ function Home() {
   const onNextHandle = useKeyPress("ArrowRight");
   const onPrevHandle = useKeyPress("ArrowLeft");
   const onEnterHandle = useKeyPress("Enter");
-  const handleSearch = () => {};
   const {
     control,
     handleSubmit,
@@ -49,23 +45,20 @@ function Home() {
     watch,
   } = useForm({
     defaultValues: {
-      search: booru.service?.lastSearch || "",
+      search: booru.search,
     },
     resolver: yupResolver(schema),
     reValidateMode: "onBlur",
     mode: "onBlur",
   });
   const onSubmit = (data: typeof schema.__inputType) => {
-    postsStore.setLoading(true);
-    booru
-      .service!.get(1, {
-        q: data.search,
-      })
-      .then((x) => {
-        postsStore.set(x);
-        postsStore.setLoading(false);
-      });
+    booru.service!.get(1, {
+      q: data.search,
+    });
   };
+  useEffect(() => {
+    if (booru.search) setValue("search", booru.search);
+  }, [booru.search]);
   useEffect(() => {
     const active = postsQuery.getActive();
     if (!active) return;

@@ -24,7 +24,7 @@ export interface DownloadItemState
 export const downloadsStore = ((store) => {
   ((preAdd) => {
     store.akitaPreAddEntity = (entity: any) => {
-      entity.id = guid();
+      if (!entity.id) entity.id = guid();
       entity.date = new Date().toISOString();
       return preAdd.bind(store)(entity);
     };

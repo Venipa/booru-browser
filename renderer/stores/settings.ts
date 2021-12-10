@@ -1,11 +1,12 @@
-import { createQuery, createStore } from '@datorama/akita';
-import produce from 'immer';
+import { createQuery, createStore } from "@datorama/akita";
+import produce from "immer";
 
 export const settingsStoreName = "settings";
 export interface SettingsType {
   downloadPath: string;
   startOnBoot: boolean;
   autoUpdate: boolean;
+  search?: string;
 }
 export const settingsStore = createStore<SettingsType>(
   { startOnBoot: false, autoUpdate: true },
