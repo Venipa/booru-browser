@@ -1,7 +1,12 @@
 # Booru-browser (wip)
 
-![Booru_Browser_2021-12-05_23-07-39](https://user-images.githubusercontent.com/17952364/144765787-1a13def7-f43f-4c09-8bcf-d77c54cbf780.png)
+# Ease to use & Download
 
+![2021-12-13_00-06-41](https://user-images.githubusercontent.com/17952364/145733342-d4e51f69-e3fb-44c5-a489-1e1705743287.png)
+
+# Video Support
+
+![2021-12-13_00-06-40](https://user-images.githubusercontent.com/17952364/145733344-98f92cbf-397a-493e-958b-8bf4d8865e41.png)
 
 ## Project setup
 
