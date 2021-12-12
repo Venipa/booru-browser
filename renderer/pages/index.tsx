@@ -1,10 +1,12 @@
 import FormControl from "@/components/FormControl";
 import PostThumbnailItem from "@/components/posts/PostThumbnailItem";
+import { Button, IconButton, Input } from "@chakra-ui/react";
 import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
-import { useKeyPress } from "@library/helper";
+import { classNames, useKeyPress } from "@library/helper";
 import { clamp } from "lodash-es";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { HiRefresh } from "react-icons/hi";
 import Masonry from "react-masonry-css";
 import { useBooru } from "renderer/services/BooruContext";
 import { postsQuery, postsStore } from "renderer/stores/posts";
@@ -32,7 +34,7 @@ function Home() {
     postsQuery.getAll()
   );
   const selected = useObservable(() => postsQuery.selectActive());
-  const isLoading = useObservable(() => postsQuery.selectLoading());
+  const isLoading = useObservable(() => postsQuery.selectLoading(), false);
   const onNextHandle = useKeyPress("ArrowRight");
   const onPrevHandle = useKeyPress("ArrowLeft");
   const onEnterHandle = useKeyPress("Enter");
@@ -56,6 +58,11 @@ function Home() {
       q: data.search,
     });
   };
+  const onReload = () => {
+    return booru.service!.get(1, {
+      q: booru.service?.lastSearch,
+    });
+  };
   useEffect(() => {
     if (booru.search) setValue("search", booru.search);
   }, [booru.search]);
@@ -76,24 +83,33 @@ function Home() {
       <div className="absolute inset-0 overflow-hidden min-h-0">
         <div className="flex flex-col h-full">
           <div>
-            <div className="bg-white bg-opacity-50 backdrop-blur h-16 flex items-center px-2.5 w-full z-10">
+            <div className="bg-white bg-opacity-50 backdrop-blur h-16 flex items-center px-2.5 w-full z-10 space-x-2">
               <Controller
                 name="search"
                 control={control}
                 render={({ field }) => {
                   return (
-                    <FormControl
+                    <Input
                       {...field}
+                      value={field.value as any}
                       placeholder="Search"
-                      className="bg-white flex-1"
-                      onKeyPress={(ev) => {
-                        if (ev.key === "Enter" && isValid)
+                      variant="flushed"
+                      onKeyUp={(ev) => {
+                        if (ev.key === "Enter")
                           onSubmit(getValues());
                       }}
+                      disabled={isLoading}
                     />
                   );
                 }}
               />
+              <IconButton
+                icon={<HiRefresh className={classNames(!isLoading || "animate-spin")} />}
+                onClick={onReload}
+                variant="ghost"
+                colorScheme="brand"
+                aria-label="reload items"
+                disabled={isLoading}></IconButton>
             </div>
           </div>
           <div className="container overflow-y-auto h-full px-2.5 py-3 bg-black bg-opacity-50">

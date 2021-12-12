@@ -49,3 +49,6 @@ a {
 @import "components/components";
 
 @import "tailwindcss/utilities";
+/* purgecss start ignore */
+@import 'plyr/dist/plyr.css';
+/* purgecss end ignore */

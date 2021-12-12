@@ -2,6 +2,8 @@ import axios, { CancelToken, CancelTokenSource } from "axios";
 import { clipboard, ipcRenderer, nativeImage } from "electron";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { serverQuery } from "renderer/stores/server";
+import { Observable } from "rxjs";
+import { distinctUntilChanged } from "rxjs/operators";
 
 export function classNames(...classes: (string | any | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
@@ -46,7 +48,17 @@ export async function testUniqueServer(name: string) {
     filterBy: (x) => x.name.toLowerCase() === name.toLowerCase(),
   }).length;
 }
-
+export function ObjectHasChange(value, nextValue) {
+  return JSON.stringify(value) !== JSON.stringify(nextValue);
+}
+export function testHasChange() {
+  let value;
+  return (nextValue) => {
+    const isTrue = JSON.stringify(value) !== JSON.stringify(nextValue);
+    if (isTrue) value = nextValue;
+    return isTrue;
+  };
+}
 export const imageMatcher = new RegExp(/\.(jp(e)?g|png|gif)$/);
 export const videoMatcher = new RegExp(/\.(mp4|webm)$/);
 export const audioMatcher = new RegExp(/\.(mp3|m4a|ogg)$/);
@@ -90,4 +102,28 @@ export const useCancelToken = (criteria?: any) => {
   }, []);
 
   return { newCancelToken, isCancel: axios.isCancel };
+};
+
+export function hasChange<T>(a: T, b: T, mapper?: (a: T) => any) {
+  if (mapper) return JSON.stringify(mapper(a)) !== JSON.stringify(mapper(b));
+  return JSON.stringify(a) !== JSON.stringify(b);
+}
+export function DistinctEqual(original: any, ...args: any[]) {
+  const _original = JSON.stringify(original);
+  return args.every((x) => JSON.stringify(x) === _original);
+}
+export function distinctUntilChangedJson<T = any>(mapper?: (a: T) => any) {
+  return (source: Observable<T>) =>
+    source.pipe(
+      distinctUntilChanged((a, b) => {
+        return !hasChange(a, b, mapper);
+      })
+    );
+}
+export const testFileType = (s) => {
+  if (!s) return "other";
+  else if (imageMatcher.test(s)) return "image";
+  else if (videoMatcher.test(s)) return "video";
+  else if (audioMatcher.test(s)) return "audio";
+  else return "other";
 };

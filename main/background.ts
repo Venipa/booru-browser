@@ -25,14 +25,21 @@ const appStore = new Store({
   },
 });
 
-ipcMain.handle("api/storage:clear", async () => {
+ipcMain.handle("api/storage:clear", async (ev) => {
+  console.log(ev.senderFrame.name);
   appStore.clear();
   return;
 });
 ipcMain.handle("api/storage:get", async (ev, key) => {
+  console.log(ev.senderFrame.name, key);
   return appStore.get(key);
 });
 ipcMain.handle("api/storage:set", async (ev, key, value) => {
+  console.log(
+    ev.senderFrame.name,
+    key,
+    typeof value === "object" ? "[object]" : value
+  );
   return appStore.set(key, value);
 });
 if (isProd) {

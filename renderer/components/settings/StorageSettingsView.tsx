@@ -6,12 +6,14 @@ import * as yup from "yup";
 import { settingsQuery, settingsStore } from "renderer/stores/settings";
 import { access } from "fs/promises";
 import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
-import { useObservable } from "rxjs-hooks";
+import { useEventCallback, useObservable } from "rxjs-hooks";
 import { HiFolder, HiSave, HiSaveAs, HiSelector } from "react-icons/hi";
 import { dialog } from "electron";
 import { ipcRenderer } from "electron";
 import { useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash";
+import { distinctUntilChangedJson } from "@library/helper";
+import { Observable } from "rxjs";
 
 const schema = yup
   .object({
@@ -58,11 +60,15 @@ export default function () {
       if (data.downloadPath) state.downloadPath = data.downloadPath;
     });
   };
-  const [values, setValues] = useState(getValues());
-  watch(debounce((value) => setValues(value)));
+  const [submitCallback, newValues] = useEventCallback(
+    (_value: Observable<typeof schema.__inputType>) =>
+      _value.pipe(distinctUntilChangedJson()),
+    getValues()
+  );
+  watch((value) => submitCallback(value as any));
   useEffect(() => {
-    if (values && isValid) onSubmit(values as any);
-  }, [values]);
+    onSubmit(newValues);
+  }, [newValues]);
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Controller

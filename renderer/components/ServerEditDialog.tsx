@@ -3,6 +3,7 @@ import { DialogProps } from "@/components/Dialog";
 import FormControl from "@/components/FormControl";
 import FormError from "@/components/FormError";
 import SelectServerBox from "@/components/SelectServerBox";
+import { Checkbox, Switch } from "@chakra-ui/react";
 import { Dialog, Transition } from "@headlessui/react";
 import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
 import { testUniqueServer } from "@library/helper";
@@ -72,6 +73,7 @@ export default function ({ onRequestClose, server }: Props) {
     },
     resolver: yupResolver(schema(server)),
   });
+  const [authEnabled, setAuthEnabled] = useState(!!server.auth?.login);
   const removeServer = () => {
     serverStore.remove((x) => x.name === server.name);
     closeModal();
@@ -199,9 +201,16 @@ export default function ({ onRequestClose, server }: Props) {
                         </div>
                         <div>
                           <div className="mt-6">
-                            <h3 className="text-lg leading-6 font-medium text-gray-900">
-                              Auth
-                            </h3>
+                            <div
+                              className="flex items-center cursor-pointer mb-2 space-x-2"
+                              onClick={() => setAuthEnabled(!authEnabled)}>
+                              <Switch
+                                isChecked={authEnabled}
+                                className="cursor-pointer mt-0.5"></Switch>
+                              <h3 className="text-lg leading-none font-medium text-gray-900">
+                                Auth
+                              </h3>
+                            </div>
                             <p className="mt-1 text-sm text-gray-500">
                               Some booru websites need authentication to access
                               features or posts in general
@@ -209,42 +218,46 @@ export default function ({ onRequestClose, server }: Props) {
                           </div>
 
                           <div className="mt-6 flex flex-col space-y-6">
-                            <Controller
-                              name="username"
-                              control={control}
-                              render={({ field }) => (
-                                <div>
-                                  <FormControl
-                                    {...field}
-                                    id={field.name}
-                                    label="Username"
-                                    isError={!!errors[field.name]}
-                                  />
-                                  <FormError
-                                    className="ml-3 mt-1"
-                                    error={errors[field.name]}
-                                  />
-                                </div>
-                              )}
-                            />
-                            <Controller
-                              name="password"
-                              control={control}
-                              render={({ field }) => (
-                                <div>
-                                  <FormControl
-                                    {...field}
-                                    id={field.name}
-                                    label="Password"
-                                    isError={!!errors[field.name]}
-                                  />
-                                  <FormError
-                                    className="ml-3 mt-1"
-                                    error={errors[field.name]}
-                                  />
-                                </div>
-                              )}
-                            />
+                            {authEnabled && (
+                              <>
+                                <Controller
+                                  name="username"
+                                  control={control}
+                                  render={({ field }) => (
+                                    <div>
+                                      <FormControl
+                                        {...field}
+                                        id={field.name}
+                                        label="Username"
+                                        isError={!!errors[field.name]}
+                                      />
+                                      <FormError
+                                        className="ml-3 mt-1"
+                                        error={errors[field.name]}
+                                      />
+                                    </div>
+                                  )}
+                                />
+                                <Controller
+                                  name="password"
+                                  control={control}
+                                  render={({ field }) => (
+                                    <div>
+                                      <FormControl
+                                        {...field}
+                                        id={field.name}
+                                        label="Password"
+                                        isError={!!errors[field.name]}
+                                      />
+                                      <FormError
+                                        className="ml-3 mt-1"
+                                        error={errors[field.name]}
+                                      />
+                                    </div>
+                                  )}
+                                />
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>

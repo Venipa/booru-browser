@@ -6,6 +6,7 @@ import {
   downloadsStore,
 } from "renderer/stores/downloads";
 import { BooruPost, FileType } from "renderer/stores/posts";
+import { serverQuery } from "renderer/stores/server";
 import { settingsQuery } from "renderer/stores/settings";
 import { Subject } from "rxjs";
 import {
@@ -55,7 +56,8 @@ export default class DownloadService {
 
   addDownload(d: BooruPost, fileType?: FileType) {
     const id = guid();
-    const downloadPath = settingsQuery.getValue().downloadPath;
+    const {downloadPath} = settingsQuery.getValue();
+    const activeServer = serverQuery.getActive();
     if (fileType === undefined && d.sample.match(/\.(mp4|mp3|webm|mov)$/)) {
       fileType = "video";
     }
@@ -69,6 +71,7 @@ export default class DownloadService {
         : undefined,
       post: d,
       url: source,
+      from: activeServer,
       status: "pending",
     });
     return new Promise<DownloadItem | undefined>((resolve, reject) => {

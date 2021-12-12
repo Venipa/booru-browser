@@ -1,7 +1,7 @@
 import { ipcRenderer } from "electron";
 import { ThreadExport } from "electron-threads";
 import { writeFile } from "fs";
-import { access } from "fs/promises";
+import { access, utimes } from "fs/promises";
 import { throttle } from "lodash";
 import path, { dirname } from "path";
 import { DownloadItem } from "renderer/stores/downloads";
@@ -41,7 +41,10 @@ async function handleDownload(d: DownloadItem, defaultPath: string) {
   ipcRenderer.once("api/cancel:download/" + d.id, () => {
     cancelled = true;
   });
-  const [data, dataLoaded, dataTotal] = await new Promise<[Buffer, number, number]>((resolve, reject) => {
+  const downloadedDate = new Date(d.date);
+  const [data, dataLoaded, dataTotal] = await new Promise<
+    [Buffer, number, number]
+  >((resolve, reject) => {
     const statusInterval = interval(100)
       .pipe(takeUntil(completedSubject))
       .subscribe(() => {
@@ -80,11 +83,15 @@ async function handleDownload(d: DownloadItem, defaultPath: string) {
       if (err) reject(err);
       resolve();
     });
-  }).catch((err) => {
-    onUpdate(d.id, "error");
-    completedSubject$destroy();
-    return Promise.reject(err);
-  });
+  })
+    .then(() => {
+      return utimes(newPath, downloadedDate, downloadedDate);
+    })
+    .catch((err) => {
+      onUpdate(d.id, "error");
+      completedSubject$destroy();
+      return Promise.reject(err);
+    });
   onUpdate(d.id, "completed", d, dataLoaded, dataTotal);
   return d;
 }

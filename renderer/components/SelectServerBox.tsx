@@ -26,7 +26,12 @@ type Props = DetailedHTMLProps<
   value?: EndpointType;
   isError?: boolean;
 };
-export default function ServerListBox({ onChange, value, onBlur, isError }: Props) {
+export default function ServerListBox({
+  onChange,
+  value,
+  onBlur,
+  isError,
+}: Props) {
   const [selected, setSelected] = useState<ServerView>();
   useEffect(() => {
     // @ts-ignore
@@ -34,8 +39,12 @@ export default function ServerListBox({ onChange, value, onBlur, isError }: Prop
   }, [value]);
   return (
     <Listbox
+      as="div"
+      className="relative z-10"
       value={selected}
-      onChange={(x: any) => onChange<EndpointType>(EndpointType[x.id as keyof typeof EndpointType])}>
+      onChange={(x: any) =>
+        onChange<EndpointType>(EndpointType[x.id as keyof typeof EndpointType])
+      }>
       {({ open }) => (
         <>
           <div className="relative mt-1">

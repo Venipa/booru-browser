@@ -6,12 +6,15 @@ import * as yup from "yup";
 import { settingsQuery, settingsStore } from "renderer/stores/settings";
 import { access } from "fs/promises";
 import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
-import { useObservable } from "rxjs-hooks";
+import { useEventCallback, useObservable } from "rxjs-hooks";
 import { HiFolder, HiSave, HiSaveAs, HiSelector } from "react-icons/hi";
 import { dialog } from "electron";
 import { ipcRenderer } from "electron";
 import { useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash";
+import { distinctUntilChangedJson } from "@library/helper";
+import { Observable } from "rxjs";
+import { debounceTime, filter } from "rxjs/operators";
 
 const schema = yup
   .object({
@@ -23,27 +26,36 @@ export default function () {
     () => settingsQuery.select(),
     settingsQuery.getValue()
   );
-  const { control, handleSubmit, setValue, getValues, formState, watch } =
-    useForm({
-      defaultValues: {
-        autoUpdate: settings.autoUpdate,
-      },
-      resolver: yupResolver(schema),
-      reValidateMode: "onBlur",
-      mode: "onBlur",
-    });
-  const { errors, isValid, isDirty, isValidating } = formState;
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { errors, isValid },
+    watch,
+  } = useForm({
+    defaultValues: {
+      autoUpdate: settings.autoUpdate,
+    },
+    resolver: yupResolver(schema),
+    reValidateMode: "onBlur",
+    mode: "onBlur",
+  });
   const onSubmit = (data: typeof schema.__inputType) => {
     settingsStore.update((state) => {
       if (data.autoUpdate !== state.autoUpdate)
         state.autoUpdate = !!data.autoUpdate;
     });
   };
-  const [values, setValues] = useState(getValues());
-  watch(debounce((value) => setValues(value as any)));
+  const [submitCallback, newValues] = useEventCallback(
+    (_value: Observable<typeof schema.__inputType>) =>
+      _value.pipe(distinctUntilChangedJson()),
+    getValues()
+  );
+  watch((value) => submitCallback(value as any));
   useEffect(() => {
-    if (isValid) onSubmit(values as any);
-  }, [values]);
+    onSubmit(newValues);
+  }, [newValues]);
   return (
     <form onSubmit={handleSubmit(onSubmit)} onChange={(ev) => console.log(ev)}>
       <Controller

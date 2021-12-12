@@ -16,6 +16,6 @@ const config = {
   },
 };
 
-const withTM = require("next-transpile-modules")(["@datorama/akita"]); // pass the modules you would like to see transpiled
+const withTM = require("next-transpile-modules")(["@datorama/akita", "plyr", "plyr-react"]); // pass the modules you would like to see transpiled
 
 module.exports = withTM(config);

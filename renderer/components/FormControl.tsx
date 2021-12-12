@@ -1,3 +1,4 @@
+import { Checkbox } from "@chakra-ui/react";
 import { classNames } from "@library/helper";
 import {
   DetailedHTMLProps,
@@ -21,7 +22,7 @@ type Props = {
     value?: any;
   };
 
-function CheckBox({ value, onChange, ...props }: Props) {
+function FormCheckBox({ value, onChange, ...props }: Props) {
   return (
     <div
       className={classNames(
@@ -29,7 +30,9 @@ function CheckBox({ value, onChange, ...props }: Props) {
         "select-none",
         props.className
       )}>
-      <span>{value ? "Enabled" : "Disabled"}</span>
+      <Checkbox isChecked={!!value} colorScheme="brand">
+        <span>{value ? "Enabled" : "Disabled"}</span>
+      </Checkbox>
       <input
         value={value as any}
         onChange={onChange}
@@ -74,7 +77,7 @@ export default function ({
         {props.type === "checkbox" ? (
           <div>
             <label className="inline-flex items-center mt-3">
-              <CheckBox
+              <FormCheckBox
                 {...props}
                 value={value as any}
                 onChange={onChange}

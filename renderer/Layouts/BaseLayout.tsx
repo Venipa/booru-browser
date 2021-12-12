@@ -1,21 +1,16 @@
-import BooruPostView from "@/components/BooruPostView";
-import Button from "@/components/Button";
-import Toolbar from "@/components/Toolbar";
-import { classNames } from "@library/helper";
-import { clamp } from "lodash-es";
-import { useRouter } from "next/dist/client/router";
-import { PropsWithChildren, useEffect, useState } from "react";
-import {
-  HiHome,
-  HiThumbUp,
-  HiFire,
-  HiDownload,
-  HiServer,
-  HiCog,
-} from "react-icons/hi";
-import { downloadsQuery } from "renderer/stores/downloads";
-import { postsQuery } from "renderer/stores/posts";
-import { useObservable } from "rxjs-hooks";
+import Button from '@/components/Button';
+import PostView from '@/components/sidebars/PostView';
+import Toolbar from '@/components/Toolbar';
+import { classNames } from '@library/helper';
+import { clamp } from 'lodash-es';
+import { useRouter } from 'next/dist/client/router';
+import React, { PropsWithChildren, useEffect, useLayoutEffect, useState } from 'react';
+import { HiCog, HiDownload, HiFire, HiHome, HiServer, HiThumbUp } from 'react-icons/hi';
+import { downloadsQuery } from 'renderer/stores/downloads';
+import { postsQuery } from 'renderer/stores/posts';
+import { useObservable } from 'rxjs-hooks';
+
+const allowedPostView = new RegExp(/^\/($|hot|top)/);
 const navLinks: (
   | { name: string; icon: any; href: string; type: "item" }
   | { type: "divide" }
@@ -65,7 +60,9 @@ const navLinks: (
 ];
 export default function ({ children, ...props }: PropsWithChildren<any>) {
   const { asPath } = useRouter();
-  const [showSelected, setShowSelected] = useState(!!asPath.match(/^\/($|hot|top)/));
+  const [showSelected, setShowSelected] = useState(
+    allowedPostView.test(asPath)
+  );
   const downloadCount = useObservable(
     () =>
       downloadsQuery.selectCount(
@@ -74,8 +71,9 @@ export default function ({ children, ...props }: PropsWithChildren<any>) {
     0
   );
   const selected = useObservable(() => postsQuery.selectActive());
-  useEffect(() => {
-    setShowSelected(!!asPath.match(/^\/($|hot|top)/));
+  useLayoutEffect(() => {
+    const _shouldShow = allowedPostView.test(asPath);
+    if (showSelected !== _shouldShow) setShowSelected(_shouldShow);
   }, [asPath]);
   return (
     <>
@@ -123,11 +121,13 @@ export default function ({ children, ...props }: PropsWithChildren<any>) {
           <div className="inset-0 absolute">{children}</div>
         </div>
         {showSelected && selected && (
-          <div className="relative h-full w-previewPane xl:w-previewPaneMax">
-            <div className="inset-0 absolute">
-              <BooruPostView post={selected} />
+          <>
+            <div className="relative h-full w-previewPane xl:w-previewPaneMax">
+              <div className="inset-0 absolute">
+                <PostView post={selected} />
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </>
