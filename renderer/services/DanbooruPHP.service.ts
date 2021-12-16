@@ -2,12 +2,14 @@ import { Axios } from "axios";
 import { clamp } from "lodash-es";
 import { BooruPost } from "renderer/stores/posts";
 import { ServerType } from "renderer/stores/server";
+import BooruServiceInterals from "./BooruInteralService";
 
 import BooruService, { BooruHttpOptions } from "./BooruService";
 
-export class DanbooruPHPService implements BooruService {
+export class DanbooruPHPService implements BooruService, BooruServiceInterals {
   private http: Axios;
-  lastSearch?: string | undefined;
+  search?: string | undefined;
+  page = 1;
   readonly defaultParams: { [key: string]: any } = {
     page: "dapi",
     json: 1,
@@ -22,6 +24,12 @@ export class DanbooruPHPService implements BooruService {
   private get baseUrl() {
     return this._server.url.replace(/\/$/, "");
   }
+  getState() {
+    return {
+      search: this.search,
+      page: this.page,
+    };
+  }
   async get(page: number = 1, args: Partial<BooruHttpOptions>) {
     return await this.http
       .get(`/index.php`, {
@@ -31,9 +39,9 @@ export class DanbooruPHPService implements BooruService {
           tags: args.q,
         },
       })
-      .then((x) => x.data ? JSON.parse(x.data) : [])
+      .then((x) => (x.data ? JSON.parse(x.data) : []))
       .then((x) => {
-        if (args.q) this.lastSearch = args.q;
+        if (args.q) this.search = args.q;
         if (x?.length > 0) {
           return x
             .filter((x: any) => x?.id)
@@ -64,7 +72,10 @@ export class DanbooruPHPService implements BooruService {
                   tags: tags?.split(" ") || [],
                   rating: "safe",
                   image,
-                  sample: other.sample === false ? source : `${baseUrl}/samples/${directory}/sample_${imageId}.jpg`,
+                  sample:
+                    other.sample === false
+                      ? source
+                      : `${baseUrl}/samples/${directory}/sample_${imageId}.jpg`,
                   thumbnail: `${baseUrl}/thumbnails/${directory}/thumbnail_${imageId}.jpg`,
                   source,
                   date: change

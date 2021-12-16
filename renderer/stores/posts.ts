@@ -39,9 +39,13 @@ class PostsStore extends EntityStore<BooruPostState> {
   constructor() {
     super();
   }
+  akitaPreAddEntity(newEntity: any): BooruPost {
+    newEntity.date = new Date().toISOString();
+    return newEntity;
+  }
 }
 export const postsStore = new PostsStore();
 export const postsQuery = createEntityQuery(postsStore, {
   sortBy: (x) => Date.parse(x.date),
-  sortByOrder: Order.DESC,
+  sortByOrder: Order.ASC,
 });

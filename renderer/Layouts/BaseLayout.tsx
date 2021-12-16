@@ -1,14 +1,27 @@
-import Button from '@/components/Button';
-import PostView from '@/components/sidebars/PostView';
-import Toolbar from '@/components/Toolbar';
-import { classNames } from '@library/helper';
-import { clamp } from 'lodash-es';
-import { useRouter } from 'next/dist/client/router';
-import React, { PropsWithChildren, useEffect, useLayoutEffect, useState } from 'react';
-import { HiCog, HiDownload, HiFire, HiHome, HiServer, HiThumbUp } from 'react-icons/hi';
-import { downloadsQuery } from 'renderer/stores/downloads';
-import { postsQuery } from 'renderer/stores/posts';
-import { useObservable } from 'rxjs-hooks';
+import Button from "@/components/Button";
+import PostView from "@/components/sidebars/PostView";
+import Toolbar from "@/components/Toolbar";
+import { classNames } from "@library/helper";
+import { clamp } from "lodash-es";
+import { useRouter } from "next/dist/client/router";
+import React, {
+  PropsWithChildren,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
+import {
+  HiCog,
+  HiDownload,
+  HiFire,
+  HiHome,
+  HiServer,
+  HiThumbUp,
+} from "react-icons/hi";
+import { useBooru } from "renderer/services/BooruContext";
+import { downloadsQuery } from "renderer/stores/downloads";
+import { postsQuery } from "renderer/stores/posts";
+import { useObservable } from "rxjs-hooks";
 
 const allowedPostView = new RegExp(/^\/($|hot|top)/);
 const navLinks: (
@@ -60,6 +73,7 @@ const navLinks: (
 ];
 export default function ({ children, ...props }: PropsWithChildren<any>) {
   const { asPath } = useRouter();
+  const booru = useBooru();
   const [showSelected, setShowSelected] = useState(
     allowedPostView.test(asPath)
   );
@@ -70,7 +84,6 @@ export default function ({ children, ...props }: PropsWithChildren<any>) {
       ),
     0
   );
-  const selected = useObservable(() => postsQuery.selectActive());
   useLayoutEffect(() => {
     const _shouldShow = allowedPostView.test(asPath);
     if (showSelected !== _shouldShow) setShowSelected(_shouldShow);
@@ -91,9 +104,8 @@ export default function ({ children, ...props }: PropsWithChildren<any>) {
                   );
                 if (x.type === "item")
                   return (
-                    <div className="relative">
+                    <div className="relative" key={x.href}>
                       <Button
-                        key={x.href}
                         className={classNames(
                           "button-nav gap-1",
                           asPath === x.href ? "active" : null
@@ -120,11 +132,11 @@ export default function ({ children, ...props }: PropsWithChildren<any>) {
         <div className="relative h-full w-full">
           <div className="inset-0 absolute">{children}</div>
         </div>
-        {showSelected && selected && (
+        {showSelected && booru.activePost && (
           <>
             <div className="relative h-full w-previewPane xl:w-previewPaneMax">
               <div className="inset-0 absolute">
-                <PostView post={selected} />
+                <PostView post={booru.activePost} />
               </div>
             </div>
           </>

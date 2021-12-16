@@ -2,15 +2,23 @@ import { Axios } from "axios";
 import { clamp } from "lodash-es";
 import { BooruPost, BooruPostState } from "renderer/stores/posts";
 import { ServerType } from "renderer/stores/server";
+import BooruServiceInterals from "./BooruInteralService";
 import BooruService, { BooruHttpOptions } from "./BooruService";
 
-export class DanbooruService implements BooruService {
+export class DanbooruService implements BooruService, BooruServiceInterals {
   private http: Axios;
-  lastSearch?: string | undefined;
+  search?: string | undefined;
+  page: number = 1;
   constructor(private _server: ServerType) {
     this.http = new Axios({
       baseURL: _server.url,
     });
+  }
+  getState() {
+    return {
+      search: this.search,
+      page: this.page,
+    };
   }
   async get(
     page: number = 1,
@@ -26,9 +34,8 @@ export class DanbooruService implements BooruService {
           tags: tags?.join(" "),
         },
       })
-      .then((x) => x.data ? JSON.parse(x.data) : [])
+      .then((x) => (x.data ? JSON.parse(x.data) : []))
       .then((x) => {
-        if (args.q) this.lastSearch = args.q;
         if (x?.length > 0) {
           return x
             .filter((x: any) => x?.id)

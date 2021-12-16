@@ -42,12 +42,10 @@ function PostView({ post, key }: PostViewProps & { key?: string }) {
       setSource(newSource);
       setFileType(testFileType(newSource));
     }
-    return () => {
-      setSource(null as any);
-    };
+    return () => {};
   }, [post]);
   return (
-    <Fragment key={key}>
+    <Fragment>
       <div className="absolute inset-0 select-none">
         <div className="flex flex-col h-full overflow-hidden">
           <div>
@@ -112,6 +110,7 @@ function PostView({ post, key }: PostViewProps & { key?: string }) {
                     <div className="flex mr-2 flex-wrap gap-2">
                       {post.tags.map((x) => (
                         <div
+                          key={x}
                           className="bg-purple-200 text-gray-900 rounded px-2.5 h-8 text-sm leading-none flex items-center justify-center cursor-pointer"
                           onClick={() => booru.service?.get(1, { q: x })}>
                           <span>{x}</span>

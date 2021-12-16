@@ -7,6 +7,7 @@ import BooruService from "./BooruService";
 
 export type BooruContextType = {
   active: ServerType | undefined;
+  activePost: BooruPost | undefined;
   service: BooruService | undefined;
   search: string | null | undefined;
   addDownload: (

@@ -1,19 +1,20 @@
 import { BooruPost, postsQuery, postsStore } from "renderer/stores/posts";
 import { EndpointType, ServerType } from "renderer/stores/server";
 import { settingsQuery, settingsStore } from "renderer/stores/settings";
+import BooruServiceInterals from "./BooruInteralService";
 import { DanbooruPHPService } from "./DanbooruPHP.service";
 import { DanbooruService } from "./DanbooruV2.service";
 
 export default interface BooruService<T = any> {
-  lastSearch?: string;
   get(page: number, args: Partial<BooruHttpOptions>): Promise<BooruPost[]>;
   getByTop(q: string, page?: number): Promise<BooruPost[]>;
   getByHot(q: string, page?: number): Promise<BooruPost[]>;
   createPostUrl(id: string | number): string;
+  getState(): any;
 
   instance(): T;
 }
-const withStoreBinding = (s: BooruService) => {
+const withStoreBinding = (s: BooruService & BooruServiceInterals) => {
   const lastSearchUpdate = (q: string) =>
     settingsStore.update((state) => {
       state.search = q;
@@ -23,13 +24,17 @@ const withStoreBinding = (s: BooruService) => {
       const lastSearch = settingsQuery.getValue().search;
       postsStore.setLoading(true);
       return (fn.bind(s) as any)(...args).then((x) => {
-        if (args[1]?.q !== lastSearch) {
+        if (args?.[1]?.reset) {
+          postsStore.set(x);
+        } else if (args[1]?.q !== lastSearch) {
           const prevActive = postsQuery.getActiveId() as string;
           postsStore.set(x);
           if (prevActive && postsQuery.hasEntity(prevActive))
             postsStore.setActive(prevActive);
         } else postsStore.upsertMany(x);
         lastSearchUpdate(args[1]?.q);
+        s.page = args?.[0];
+        s.search = args?.[1]?.q;
         postsStore.setLoading(false);
         return x;
       });

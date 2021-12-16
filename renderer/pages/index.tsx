@@ -1,32 +1,37 @@
-import FormControl from "@/components/FormControl";
+import NoSSR from "@/components/NoSSR";
+import PostMasonry from "@/components/PostMasonry";
 import PostThumbnailItem from "@/components/posts/PostThumbnailItem";
-import { Button, IconButton, Input } from "@chakra-ui/react";
+import { IconButton, Input } from "@chakra-ui/react";
 import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
-import { classNames, useKeyPress } from "@library/helper";
-import { clamp } from "lodash-es";
-import React, { useEffect, useState } from "react";
+import { classNames } from "@library/helper";
+import {
+  createResizeObserver,
+  Masonry,
+  useInfiniteLoader,
+  useMasonry,
+  usePositioner,
+  useResizeObserver,
+} from "masonic";
+import React, { memo, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { HiRefresh } from "react-icons/hi";
-import Masonry from "react-masonry-css";
+import { AutoSizer, AutoSizer as div } from "react-virtualized";
 import { useBooru } from "renderer/services/BooruContext";
-import { postsQuery, postsStore } from "renderer/stores/posts";
+import { BooruPost, postsQuery } from "renderer/stores/posts";
 import { useObservable } from "rxjs-hooks";
 import * as yup from "yup";
 
-const breakpointColumnsObj = {
-  default: 7,
-  2000: 6,
-  1800: 5,
-  1400: 4,
-  1260: 3,
-  1068: 2,
-  768: 1,
-};
 const schema = yup
   .object({
     search: yup.string().optional(),
   })
   .required();
+
+const RenderItem = memo(
+  ({ data: item, selected }: { data: BooruPost; selected?: boolean }) => {
+    return <PostThumbnailItem item={item} selected={selected} key={item.id} />;
+  }
+);
 function Home() {
   const booru = useBooru();
   const posts = useObservable(
@@ -35,9 +40,7 @@ function Home() {
   );
   const selected = useObservable(() => postsQuery.selectActive());
   const isLoading = useObservable(() => postsQuery.selectLoading(), false);
-  const onNextHandle = useKeyPress("ArrowRight");
-  const onPrevHandle = useKeyPress("ArrowLeft");
-  const onEnterHandle = useKeyPress("Enter");
+  const containerRef = useRef<HTMLElement>();
   const {
     control,
     handleSubmit,
@@ -47,7 +50,7 @@ function Home() {
     watch,
   } = useForm({
     defaultValues: {
-      search: booru.search,
+      search: booru.search ?? "",
     },
     resolver: yupResolver(schema),
     reValidateMode: "onBlur",
@@ -59,25 +62,34 @@ function Home() {
     });
   };
   const onReload = () => {
+    const { search, page } = booru.service!.getState();
     return booru.service!.get(1, {
-      q: booru.service?.lastSearch,
+      q: search,
+      reset: true,
     });
   };
+
+  const [itemsLoaded, setItemsLoaded] = useState(0),
+    [waitLoad, setWaitLoad] = useState(false);
+  const fetchMoreItems = async (startIndex, stopIndex, currentItems) => {
+    setWaitLoad(true);
+    console.log("fetchMoreItems", startIndex, stopIndex, currentItems);
+    const service = booru.service!;
+    const { page, search } = service!.getState();
+    setItemsLoaded(postsQuery.getCount());
+    await service.get(page + 1, {
+      q: search,
+    });
+    setWaitLoad(false);
+  };
+  const checkLoadMore = useInfiniteLoader(fetchMoreItems, {
+    isItemLoaded: (index, items) => !!items?.[index],
+    totalItems:
+      !waitLoad && itemsLoaded < posts.length ? posts.length + 1 : itemsLoaded,
+  });
   useEffect(() => {
     if (booru.search) setValue("search", booru.search);
   }, [booru.search]);
-  useEffect(() => {
-    const active = postsQuery.getActive();
-    if (!active) return;
-    const index = ((idx) => clamp(idx, 0, idx))(
-      postsQuery.getValue().ids?.findIndex((x) => x === active.id) ?? 0
-    );
-    const ids = postsQuery.getValue().ids || [];
-    if (ids.length <= 0) return;
-    if (onNextHandle) postsStore.setActive(ids[clamp(index + 1, 0, index + 1)]);
-    else if (onPrevHandle)
-      postsStore.setActive(ids[clamp(index - 1, 0, index - 1)]);
-  }, [onNextHandle, onPrevHandle, onEnterHandle]);
   return (
     <React.Fragment>
       <div className="absolute inset-0 overflow-hidden min-h-0">
@@ -95,8 +107,7 @@ function Home() {
                       placeholder="Search"
                       variant="flushed"
                       onKeyUp={(ev) => {
-                        if (ev.key === "Enter")
-                          onSubmit(getValues());
+                        if (ev.key === "Enter") onSubmit(getValues() as any);
                       }}
                       disabled={isLoading}
                     />
@@ -104,7 +115,11 @@ function Home() {
                 }}
               />
               <IconButton
-                icon={<HiRefresh className={classNames(!isLoading || "animate-spin")} />}
+                icon={
+                  <HiRefresh
+                    className={classNames(!isLoading || "animate-spin")}
+                  />
+                }
                 onClick={onReload}
                 variant="ghost"
                 colorScheme="brand"
@@ -112,21 +127,31 @@ function Home() {
                 disabled={isLoading}></IconButton>
             </div>
           </div>
-          <div className="container overflow-y-auto h-full px-2.5 py-3 bg-black bg-opacity-50">
-            <Masonry
-              breakpointCols={breakpointColumnsObj}
-              className="flex -ml-8 w-auto"
-              columnClassName="pl-8 bg-clip-padding space-y-6 flex flex-col justify-between items-center">
-              {posts?.map((p) => {
-                return (
-                  <PostThumbnailItem
-                    key={p.id}
-                    item={p}
-                    selected={!!selected && selected.id === p.id}
+          <div
+            className="relative h-full overflow-y-auto overflow-x-hidden py-4 bg-black bg-opacity-50 rounded-none"
+            ref={containerRef as any}>
+            <NoSSR predicate={() => !!booru.service && containerRef.current}>
+              <AutoSizer>
+                {({ height }) => (
+                  <PostMasonry
+                    containerRef={containerRef as any}
+                    height={height}
+                    items={posts}
+                    options={{
+                      className: "absolute inset-0",
+                      itemKey: (data: any) => data?.id,
+                      onRender: checkLoadMore,
+                      render: ({ data }) => (
+                        <RenderItem
+                          data={data as any}
+                          selected={(data as BooruPost).id === selected?.id}
+                        />
+                      ),
+                    }}
                   />
-                );
-              })}
-            </Masonry>
+                )}
+              </AutoSizer>
+            </NoSSR>
           </div>
         </div>
       </div>

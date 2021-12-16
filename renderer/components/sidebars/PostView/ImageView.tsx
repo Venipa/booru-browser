@@ -35,24 +35,25 @@ function ImageView({
     setError(null);
     setSource(null);
     setIsLoading(true);
-    downloadFileAsBlob(src, newCancelToken())
-      .then((x) => {
-        if (error) setError(null);
-        setSource(x);
-        setIsLoading(false);
-      })
-      .catch((err: Error | AxiosError) => {
-        console.error(err);
-        if (axios.isAxiosError(err)) {
-          setError(err.message);
-        } else if (isCancel(err)) {
-          setError(err);
-        } else {
-          setError("Something went wrong");
-        }
-        setSource(null);
-        setIsLoading(false);
-      });
+    if (src)
+      downloadFileAsBlob(src, newCancelToken())
+        .then((x) => {
+          if (error) setError(null);
+          setSource(x);
+          setIsLoading(false);
+        })
+        .catch((err: Error | AxiosError) => {
+          console.error(err);
+          if (axios.isAxiosError(err)) {
+            setError(err.message);
+          } else if (isCancel(err)) {
+            setError(err);
+          } else {
+            setError("Something went wrong");
+          }
+          setSource(null);
+          setIsLoading(false);
+        });
     return () => {
       setIsLoading(false);
     };
@@ -81,7 +82,7 @@ function ImageView({
             </div>
           ) : (
             source && (
-              <div className="relative mx-auto inline-block w-96 max-w-full shadow-lg select-none group">
+              <div className="relative mx-auto inline-block w-96 max-w-full shadow-lg select-none group bg-white bg-opacity-30">
                 <img
                   src={source.uri}
                   className="align-top pointer-events-none"

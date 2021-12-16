@@ -13,6 +13,7 @@
   "dependencies": {
     "@chakra-ui/react": "^1.7.3",
     "@datorama/akita": "^7.0.1",
+    "@egjs/react-infinitegrid": "^4.1.1",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
     "@headlessui/react": "^1.4.2",
@@ -33,6 +34,7 @@
     "immer": "^9.0.7",
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
+    "masonic": "^3.6.1",
     "next-transpile-modules": "^9.0.0",
     "plyr": "^3.6.9",
     "plyr-react": "^3.1.0",

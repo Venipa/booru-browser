@@ -2,7 +2,7 @@ import "@/styles/globals.scss";
 
 import { DialogProvider, DialogRoot } from "@/components/Dialog";
 import LoadingView from "@/components/LoadingView";
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import { useEffect } from "react";
 import BaseLayout from "renderer/Layouts/BaseLayout";
 import BooruProvider from "renderer/services/BooruProvider";

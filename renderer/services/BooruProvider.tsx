@@ -5,7 +5,7 @@ import React, {
   useLayoutEffect,
   useState,
 } from "react";
-import { postsStore } from "renderer/stores/posts";
+import { postsQuery, postsStore } from "renderer/stores/posts";
 import { serverQuery } from "renderer/stores/server";
 import { settingsQuery } from "renderer/stores/settings";
 import { useObservable } from "rxjs-hooks";
@@ -20,6 +20,7 @@ const BooruProvider = ({ children, ...props }: PropsWithChildren<any>) => {
     () => serverQuery.selectActive(),
     serverQuery.getActive()
   );
+  const activePost = useObservable(() => postsQuery.selectActive(), postsQuery.getActive());
   const search = useObservable(() => settingsQuery.select((x) => x.search));
   const [service, setService] = useState<BooruService>();
   useEffect(() => {
@@ -28,15 +29,17 @@ const BooruProvider = ({ children, ...props }: PropsWithChildren<any>) => {
       downloadService.stopQueue();
     };
   }, []);
-  useLayoutEffect(() => {
+  useEffect(() => {
     let service: BooruService | null;
     if (active && (service = createFactory(active))) {
       postsStore.remove();
       setService(service);
     }
   }, [active]);
-  useLayoutEffect(() => {
-    service?.get(0, {});
+  useEffect(() => {
+    service?.get(1, {
+      q: service?.getState().search ?? settingsQuery.getValue().search,
+    });
   }, [service]);
   return (
     <BooruContext.Provider
@@ -47,6 +50,7 @@ const BooruProvider = ({ children, ...props }: PropsWithChildren<any>) => {
         addDownload: downloadService.addDownload,
         removeDownload: downloadService.removeDownload.bind(downloadService),
         cancelDownload: downloadService.cancelDownload.bind(downloadService),
+        activePost,
       }}>
       {children}
     </BooruContext.Provider>
